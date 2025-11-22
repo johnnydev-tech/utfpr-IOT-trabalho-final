@@ -14,18 +14,18 @@
       <td><img src="assets/Simulator Screenshot - iPhone 17 Pro - 2025-11-22 at 17.32.38.png" width="250"/></td>
     </tr>
     <tr>
-      <td align="center">Status Verde (OK)</td>
-      <td align="center">Status Amarelo (Alerta)</td>
-      <td align="center">Status Vermelho (Crítico)</td>
+      <td align="center">Dashboard Alerta</td>
+      <td align="center">Sensores</td>
+      <td align="center">Notificações</td>
     </tr>
   </table>
   
   <br/>
   
   <p><strong>Demonstração do Funcionamento em Tempo Real:</strong></p>
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/Zj5sTTthiWE" 
-          frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowfullscreen></iframe>
+  <a href="https://www.youtube.com/watch?v=Zj5sTTthiWE" target="_blank">
+    <img src="https://img.youtube.com/vi/Zj5sTTthiWE/0.jpg" alt="Demonstração do Sistema" width="560"/>
+  </a>
 </div>
 
 ## Índice
