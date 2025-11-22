@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "296913940818",
+    "firebase_url": "https://utfpr-iot-trabalho-final-default-rtdb.firebaseio.com",
+    "project_id": "utfpr-iot-trabalho-final",
+    "storage_bucket": "utfpr-iot-trabalho-final.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296913940818:android:77cf95ec160071f46e0a8b",
+        "android_client_info": {
+          "package_name": "com.example.iot_monitor_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGwAIZNJ3fxfSWPj7uvGOmJmn7bAMJQL0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

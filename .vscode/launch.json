@@ -1,0 +1,41 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Arduino Simulado",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/arduino-simulator/arduino-simulado.ts"],
+      "cwd": "${workspaceFolder}/arduino-simulator",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "IOT APP",
+      "cwd": "iot_monitor_app",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      
+    },
+    {
+      "name": "IOT APP (profile mode)",
+      "cwd": "iot_monitor_app",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "iot_monitor_app (release mode)",
+      "cwd": "iot_monitor_app",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "program": "lib/main.dart"
+    }
+  ]
+}
