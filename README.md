@@ -104,7 +104,28 @@ git clone https://github.com/johnnydev-tech/utfpr-IOT-trabalho-final.git
 cd utfpr-IOT-trabalho-final
 ```
 
-### 2. Configurar o Simulador Arduino
+### 2. Configurar Firebase Realtime Database
+
+⚠️ **IMPORTANTE**: Configure as regras do Firebase antes de continuar!
+
+📖 **[Guia Completo de Configuração do Firebase →](FIREBASE_SETUP.md)**
+
+**Configuração Rápida:**
+1. Acesse [Firebase Console](https://console.firebase.google.com)
+2. Selecione seu projeto
+3. Vá em **Realtime Database → Rules**
+4. Cole este código (apenas para desenvolvimento):
+```json
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+```
+5. Clique em **Publish**
+
+### 3. Configurar o Simulador Arduino
 
 ```bash
 cd arduino-simulator
@@ -136,14 +157,14 @@ Se você não tiver o `serviceAccountKey.json`, o simulador funcionará em **mod
 
 **Nota**: Use regras abertas apenas em desenvolvimento. Em produção, configure regras de segurança adequadas.
 
-### 3. Configurar o App Flutter
+### 4. Configurar o App Flutter
 
 ```bash
 cd ../iot_monitor_app
 flutter pub get
 ```
 
-### 4. Executar o Simulador
+### 5. Executar o Simulador
 
 **Opção 1: Via VS Code (Recomendado)**
 
@@ -158,7 +179,7 @@ cd arduino-simulator
 npm start
 ```
 
-### 5. Executar o App Flutter
+### 6. Executar o App Flutter
 
 **Opção 1: Via VS Code (Recomendado)**
 

@@ -58,30 +58,28 @@ try {
     credential: cert(serviceAccount), 
     databaseURL: 'https://utfpr-iot-trabalho-final-default-rtdb.firebaseio.com' 
   });
-  console.log('✅ Firebase inicializado com Service Account (modo seguro)');
+  console.log('[OK] Firebase inicializado com Service Account (modo seguro)');
 } catch (error) {
   usandoModoDev = true;
-  console.warn('\n⚠️  MODO DE DESENVOLVIMENTO');
-  console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.warn('Não foi possível carregar serviceAccountKey.json válido.');
-  console.warn('O simulador enviará dados, mas você verá warnings do Firebase.');
+  console.warn('\n[AVISO] MODO DE DESENVOLVIMENTO');
+  console.warn('================================================================');
+  console.warn('Nao foi possivel carregar serviceAccountKey.json valido.');
   console.warn('');
-  console.warn('📝 Para usar sem warnings (recomendado):');
+  console.warn('[IMPORTANTE] Para usar em producao:');
   console.warn('   1. Acesse: https://console.firebase.google.com');
   console.warn('   2. Project Settings > Service Accounts');
   console.warn('   3. Clique em "Generate New Private Key"');
   console.warn('   4. Salve como: serviceAccountKey.json nesta pasta');
-  console.warn('');
-  console.warn('📝 Para testar rapidamente:');
-  console.warn('   Configure as regras do Firebase Database como públicas');
-  console.warn('   (apenas para desenvolvimento)');
-  console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  console.warn('================================================================\n');
   
-  // Modo de desenvolvimento - funciona mas gera warnings
-  const { initializeApp: initApp } = require('firebase-admin/app');
-  app = initApp({
-    databaseURL: 'https://utfpr-iot-trabalho-final-default-rtdb.firebaseio.com',
-    databaseAuthVariableOverride: null  // null = sem autenticação
+  console.log('[INFO] Usando database URL sem autenticacao');
+  console.log('[INFO] ATENCAO: Configure as regras do Firebase como publicas!');
+  console.log('[INFO] Firebase Console > Realtime Database > Rules');
+  console.log('[INFO] { "rules": { ".read": true, ".write": true } }\n');
+  
+  // Criar app sem credenciais - funciona apenas com regras abertas
+  app = initializeApp({
+    databaseURL: 'https://utfpr-iot-trabalho-final-default-rtdb.firebaseio.com'
   });
 }
 
@@ -123,7 +121,7 @@ function consolidatePanel(tempStatus: Status, luzStatus: Status): Painel {
 }
 
 // ============ FUNÇÕES DE ENVIO ============
-function enviarDados() {
+async function enviarDados() {
   const tempVal = gerarTemperatura();
   const luzVal = gerarLuminosidade();
 
@@ -139,14 +137,38 @@ function enviarDados() {
     timestamp: now
   };
 
-  db.ref('/agro/algodao/sensores').set(payload);
-  
-  const modo = modoManual ? '[MANUAL]' : '[AUTO]';
-  console.log(`${modo} Enviado:`, {
-    temp: `${tempVal}°C (${tempStatus})`,
-    luz: `${luzVal} lux (${luzStatus})`,
-    painel: painel
-  });
+  try {
+    await db.ref('/agro/algodao/sensores').set(payload);
+    
+    const modo = modoManual ? '[MANUAL]' : '[AUTO]';
+    console.log(`${modo} Enviado:`, {
+      temp: `${tempVal}°C (${tempStatus})`,
+      luz: `${luzVal} lux (${luzStatus})`,
+      painel: painel
+    });
+  } catch (error: any) {
+    console.error('[ERRO] Falha ao enviar dados:', error.message);
+    if (error.message.includes('Permission denied') || error.message.includes('PERMISSION_DENIED')) {
+      console.error('\n[ERRO] PERMISSAO NEGADA PELO FIREBASE');
+      console.error('================================================================');
+      console.error('As regras do Firebase Realtime Database estao bloqueando acesso.');
+      console.error('');
+      console.error('[SOLUCAO] Para corrigir:');
+      console.error('   1. Acesse: https://console.firebase.google.com');
+      console.error('   2. Selecione: utfpr-iot-trabalho-final');
+      console.error('   3. Va em: Realtime Database > Rules');
+      console.error('   4. Configure (APENAS DESENVOLVIMENTO):');
+      console.error('      {');
+      console.error('        "rules": {');
+      console.error('          ".read": true,');
+      console.error('          ".write": true');
+      console.error('        }');
+      console.error('      }');
+      console.error('   5. Clique em "Publish"');
+      console.error('   6. Reinicie este programa');
+      console.error('================================================================\n');
+    }
+  }
 }
 
 // ============ INTERFACE DE LINHA DE COMANDO ============
@@ -158,7 +180,7 @@ const rl = readline.createInterface({
 
 function mostrarMenu() {
   console.log('\n' + '='.repeat(60));
-  console.log('📟 ARDUINO SIMULADO - CONTROLE INTERATIVO');
+  console.log('ARDUINO SIMULADO - CONTROLE INTERATIVO');
   console.log('='.repeat(60));
   console.log('Comandos disponíveis:');
   console.log('  temp <valor>  - Define temperatura manual (ex: temp 32)');
@@ -184,9 +206,9 @@ rl.on('line', (line: string) => {
       if (cmd[1]) {
         temperaturaManual = parseFloat(cmd[1]);
         modoManual = true;
-        console.log(`✓ Temperatura definida para ${temperaturaManual}°C (modo manual)`);
+        console.log(`[OK] Temperatura definida para ${temperaturaManual}°C (modo manual)`);
       } else {
-        console.log('❌ Use: temp <valor>');
+        console.log('[ERRO] Use: temp <valor>');
       }
       break;
       
@@ -194,22 +216,22 @@ rl.on('line', (line: string) => {
       if (cmd[1]) {
         luminosidadeManual = parseInt(cmd[1]);
         modoManual = true;
-        console.log(`✓ Luminosidade definida para ${luminosidadeManual} lux (modo manual)`);
+        console.log(`[OK] Luminosidade definida para ${luminosidadeManual} lux (modo manual)`);
       } else {
-        console.log('❌ Use: luz <valor>');
+        console.log('[ERRO] Use: luz <valor>');
       }
       break;
       
     case 'auto':
       modoManual = false;
-      console.log('✓ Modo automático ativado');
+      console.log('[OK] Modo automatico ativado');
       break;
       
     case 'status':
-      console.log('\n📊 Status atual:');
-      console.log(`Modo: ${modoManual ? 'MANUAL' : 'AUTOMÁTICO'}`);
-      console.log(`Temperatura: ${modoManual ? temperaturaManual : 'aleatória'} °C`);
-      console.log(`Luminosidade: ${modoManual ? luminosidadeManual : 'aleatória'} lux`);
+      console.log('\n[STATUS] Configuracao atual:');
+      console.log(`Modo: ${modoManual ? 'MANUAL' : 'AUTOMATICO'}`);
+      console.log(`Temperatura: ${modoManual ? temperaturaManual : 'aleatoria'} °C`);
+      console.log(`Luminosidade: ${modoManual ? luminosidadeManual : 'aleatoria'} lux`);
       break;
       
     case 'help':
@@ -217,13 +239,13 @@ rl.on('line', (line: string) => {
       break;
       
     case 'exit':
-      console.log('👋 Encerrando simulador...');
+      console.log('[INFO] Encerrando simulador...');
       process.exit(0);
       break;
       
     default:
       if (line.trim()) {
-        console.log('❌ Comando não reconhecido. Digite "help" para ver os comandos.');
+        console.log('[ERRO] Comando nao reconhecido. Digite "help" para ver os comandos.');
       }
   }
   
@@ -249,18 +271,65 @@ if (usandoModoDev) {
   };
 }
 
-// ============ INICIALIZAÇÃO ============
-console.log('🚀 Iniciando Arduino Simulado...');
-console.log('📡 Conectando ao Firebase...');
+// ============ INICIALIZACAO ============
+console.log('[INFO] Iniciando Arduino Simulado...');
+console.log('[INFO] Conectando ao Firebase...');
 
-// Aguardar conexão com Firebase
-setTimeout(() => {
-  console.log('✓ Conectado ao Firebase!');
-  if (usandoModoDev) {
-    console.log('ℹ️  Warnings do Firebase foram suprimidos em modo desenvolvimento\n');
+// Funcao para testar conexao
+async function testarConexao() {
+  try {
+    console.log('[INFO] Testando conexao com Firebase...');
+    
+    // Tenta fazer uma leitura simples para testar permissoes
+    await db.ref('/agro/algodao/sensores').once('value');
+    
+    console.log('[OK] Conexao estabelecida com sucesso!');
+    if (usandoModoDev) {
+      console.log('[INFO] Modo desenvolvimento ativo');
+    }
+    console.log('[OK] Permissoes de leitura/escrita OK\n');
+    
+    return true;
+  } catch (error: any) {
+    console.error('[ERRO] Falha ao conectar com Firebase:', error.message);
+    console.error('[DEBUG] Tipo do erro:', error.code || 'desconhecido');
+    
+    if (error.message.includes('Permission denied') || error.message.includes('PERMISSION_DENIED')) {
+      console.error('\n[ERRO] PERMISSAO NEGADA PELO FIREBASE');
+      console.error('================================================================');
+      console.error('As regras do Firebase Realtime Database estao bloqueando acesso.');
+      console.error('');
+      console.error('[SOLUCAO] Para corrigir:');
+      console.error('   1. Acesse: https://console.firebase.google.com');
+      console.error('   2. Selecione: utfpr-iot-trabalho-final');
+      console.error('   3. Va em: Realtime Database > Rules');
+      console.error('   4. Configure (APENAS DESENVOLVIMENTO):');
+      console.error('      {');
+      console.error('        "rules": {');
+      console.error('          ".read": true,');
+      console.error('          ".write": true');
+      console.error('        }');
+      console.error('      }');
+      console.error('   5. Clique em "Publish"');
+      console.error('   6. Reinicie este programa');
+      console.error('================================================================\n');
+    }
+    
+    return false;
   }
-  mostrarMenu();
+}
 
+// Aguardar conexão com Firebase e testar
+setTimeout(async () => {
+  const conectado = await testarConexao();
+  
+  if (!conectado) {
+    console.log('\n[ERRO] Nao foi possivel conectar ao Firebase.');
+    console.log('[INFO] Corrija as permissoes e tente novamente.\n');
+    process.exit(1);
+  }
+  
+  mostrarMenu();
   
   // Iniciar envio periódico de dados
   setInterval(enviarDados, CONFIG.UPDATE_INTERVAL);
@@ -270,13 +339,13 @@ setTimeout(() => {
     const cmd: Command | null = snap.val();
     if (!cmd) return;
     if (cmd.forcar_estado && cmd.forcar_estado !== 'AUTO') {
-      console.log(`\n📥 Comando recebido do app: forçar painel ${cmd.forcar_estado}`);
+      console.log(`\n[COMANDO] Recebido do app: forcar painel ${cmd.forcar_estado}`);
       db.ref('/agro/algodao/sensores/painel_forcado').set({ 
         estado: cmd.forcar_estado, 
         timestamp: Date.now() 
       });
     } else {
-      console.log('\n📥 Comando recebido do app: modo AUTO');
+      console.log('\n[COMANDO] Recebido do app: modo AUTO');
       db.ref('/agro/algodao/sensores/painel_forcado').remove();
     }
     rl.prompt();
