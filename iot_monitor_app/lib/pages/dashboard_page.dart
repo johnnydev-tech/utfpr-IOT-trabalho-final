@@ -50,7 +50,7 @@ class _DashboardPageState extends State<DashboardPage> {
       if (sensorValue.status == 'CRITICO') {
         if (!_notifiedSensors.contains(sensorName)) {
           _notifiedSensors.add(sensorName);
-          
+
           // Mostrar notificação local
           NotificationService().showCriticalAlert(
             title: 'Alerta Crítico: $sensorLabel',
@@ -58,7 +58,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 '${sensorValue.valor}${sensorValue.unidade} - Ação imediata necessária!',
             sensorName: sensorName,
           );
-          
+
           // Salvar no Firebase
           final notification = AlertNotification(
             id: '',
@@ -69,7 +69,7 @@ class _DashboardPageState extends State<DashboardPage> {
             status: sensorValue.status,
             timestamp: DateTime.now().millisecondsSinceEpoch,
           );
-          
+
           await NotificationRepository().saveNotification(notification);
         }
       } else {
@@ -105,10 +105,9 @@ class _DashboardPageState extends State<DashboardPage> {
           StreamBuilder<List<AlertNotification>>(
             stream: NotificationRepository().watchNotifications(),
             builder: (context, snapshot) {
-              final unreadCount = snapshot.data
-                      ?.where((n) => !n.lida)
-                      .length ?? 0;
-              
+              final unreadCount =
+                  snapshot.data?.where((n) => !n.lida).length ?? 0;
+
               return Stack(
                 children: [
                   IconButton(
