@@ -99,7 +99,7 @@ class _DashboardPageState extends State<DashboardPage> {
             const Text('Monitor Algodão'),
           ],
         ),
-        elevation: AppConstants.elevationSmall,
+        elevation: 0,
         actions: [
           // Botão de notificações com badge
           StreamBuilder<List<AlertNotification>>(
@@ -108,46 +108,32 @@ class _DashboardPageState extends State<DashboardPage> {
               final unreadCount =
                   snapshot.data?.where((n) => !n.lida).length ?? 0;
 
-              return Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NotificationsPage(),
+              return Badge(
+                offset: const Offset(-12, 10),
+                label: unreadCount > 0
+                    ? Text(
+                        unreadCount > 99 ? '99+' : '$unreadCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
                         ),
-                      );
-                    },
-                    tooltip: 'Histórico de Alertas',
-                  ),
-                  if (unreadCount > 0)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppPalette.error,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          unreadCount > 9 ? '9+' : '$unreadCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                      )
+                    : null,
+
+                child: IconButton(
+                  iconSize: 32,
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsPage(),
                       ),
-                    ),
-                ],
+                    );
+                  },
+                  tooltip: 'Histórico de Alertas',
+                ),
               );
             },
           ),

@@ -305,7 +305,7 @@ sensors: {
   // ... sensores existentes
   co2: {
     min: 300,
-    max: 2000,
+    max: 5000,
     okMin: 400,
     okMax: 1000,
     alertaMin: 350,

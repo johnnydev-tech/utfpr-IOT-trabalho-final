@@ -200,8 +200,8 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
-      elevation: notification.lida ? 1 : AppConstants.elevationMedium,
-      color: notification.lida ? AppPalette.gray_100 : AppPalette.white,
+
+      color: notification.lida ? AppPalette.gray_300 : AppPalette.white,
       child: InkWell(
         onTap: () => _showDetails(context),
         borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
@@ -209,7 +209,6 @@ class _NotificationCard extends StatelessWidget {
           padding: const EdgeInsets.all(AppConstants.paddingNormal),
           child: Row(
             children: [
-              // Ícone de status
               Container(
                 width: 48,
                 height: 48,

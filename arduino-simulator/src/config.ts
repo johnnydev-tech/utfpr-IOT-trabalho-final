@@ -2,7 +2,7 @@
 import { SimulatorConfig } from './types';
 
 export const CONFIG: SimulatorConfig = {
-  updateInterval: 2000, // 2 segundos
+  updateInterval: 5000, // 2 segundos
   
   sensors: {
     // Temperatura (°C) - Ideal para algodão: 20-30°C

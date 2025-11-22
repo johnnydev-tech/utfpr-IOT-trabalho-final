@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FIREBASE_CONFIG = exports.CONFIG = void 0;
 exports.CONFIG = {
-    updateInterval: 2000, // 2 segundos
+    updateInterval: 5000, // 2 segundos
     sensors: {
         // Temperatura (°C) - Ideal para algodão: 20-30°C
         temperatura: {

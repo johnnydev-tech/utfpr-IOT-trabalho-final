@@ -386,7 +386,7 @@ No arquivo `arduino-simulator/arduino-simulado.ts`, linha 8:
 
 ```typescript
 const CONFIG = {
-  UPDATE_INTERVAL: 2000, // Altere para o intervalo desejado em ms
+  UPDATE_INTERVAL: 5000, // Altere para o intervalo desejado em ms
   // ...
 };
 ```

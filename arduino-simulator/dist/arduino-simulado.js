@@ -5,7 +5,7 @@ const { getDatabase } = require('firebase-admin/database');
 const readline = require('readline');
 // ============ CONFIGURAÇÕES ============
 const CONFIG = {
-    UPDATE_INTERVAL: 2000, // Intervalo de atualização em ms
+    UPDATE_INTERVAL: 5000, // Intervalo de atualização em ms
     TEMP_MIN: 22,
     TEMP_MAX: 38,
     LUZ_MIN: 200,
