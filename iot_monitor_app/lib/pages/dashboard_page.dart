@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/sensor_cubit.dart';
 import '../cubit/sensor_state.dart';
 import '../models/sensor_model.dart';
+import '../core/theme/app_palette.dart';
+import '../core/theme/app_constants.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -10,7 +12,10 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('🌾 Monitor Algodão'), elevation: 2),
+      appBar: AppBar(
+        title: const Text('Monitor Algodão'),
+        elevation: AppConstants.elevationSmall,
+      ),
       body: BlocConsumer<SensorCubit, SensorState>(
         listener: (context, state) {
           // Show snackbars for command results
@@ -24,7 +29,7 @@ class DashboardPage extends StatelessWidget {
                     Expanded(child: Text(state.message)),
                   ],
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: AppPalette.success,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -38,7 +43,7 @@ class DashboardPage extends StatelessWidget {
                     Expanded(child: Text(state.failure.message)),
                   ],
                 ),
-                backgroundColor: Colors.red,
+                backgroundColor: AppPalette.error,
                 duration: const Duration(seconds: 3),
                 action: SnackBarAction(
                   label: 'OK',
@@ -63,7 +68,11 @@ class DashboardPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.sensors, size: 64, color: Colors.grey),
+            Icon(
+              Icons.sensors,
+              size: AppConstants.iconSizeExtraLarge,
+              color: AppPalette.gray,
+            ),
             SizedBox(height: 16),
             Text('Inicializando...', style: TextStyle(fontSize: 18)),
           ],
@@ -91,7 +100,11 @@ class DashboardPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const Icon(
+                Icons.error_outline,
+                size: AppConstants.iconSizeExtraLarge,
+                color: AppPalette.error,
+              ),
               const SizedBox(height: 16),
               Text('Erro', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 8),
@@ -142,14 +155,14 @@ class DashboardPage extends StatelessWidget {
     SensoresPayload data,
     bool isSendingCommand,
   ) {
-    Color panelColor = Colors.green;
+    Color panelColor = AppPalette.sensorOk;
     IconData panelIcon = Icons.check_circle;
 
     if (data.painel == 'AMARELO') {
-      panelColor = Colors.amber;
+      panelColor = AppPalette.sensorAlert;
       panelIcon = Icons.warning;
     } else if (data.painel == 'VERMELHO') {
-      panelColor = Colors.red;
+      panelColor = AppPalette.sensorCritical;
       panelIcon = Icons.dangerous;
     }
 
@@ -160,11 +173,15 @@ class DashboardPage extends StatelessWidget {
 
           // Status Panel
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.all(24),
+            margin: const EdgeInsets.symmetric(
+              horizontal: AppConstants.paddingLarge,
+            ),
+            padding: const EdgeInsets.all(AppConstants.paddingLarge),
             decoration: BoxDecoration(
               color: panelColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(
+                AppConstants.borderRadiusNormal,
+              ),
               border: Border.all(color: panelColor, width: 2),
             ),
             child: Column(
@@ -194,7 +211,7 @@ class DashboardPage extends StatelessWidget {
           // Sensor Cards
           _buildSensorCard(
             context,
-            title: '🌡️ Temperatura',
+            title: 'Temperatura',
             value: '${data.temperatura.valor.toStringAsFixed(1)}°C',
             status: data.temperatura.status,
             icon: Icons.thermostat,
@@ -202,7 +219,7 @@ class DashboardPage extends StatelessWidget {
 
           _buildSensorCard(
             context,
-            title: '💡 Luminosidade',
+            title: 'Luminosidade',
             value: '${data.luminosidade.valor} lux',
             status: data.luminosidade.status,
             icon: Icons.wb_sunny,
@@ -230,28 +247,28 @@ class DashboardPage extends StatelessWidget {
                     _buildCommandButton(
                       context,
                       label: 'VERDE',
-                      color: Colors.green,
+                      color: AppPalette.sensorOk,
                       icon: Icons.check,
                       enabled: !isSendingCommand,
                     ),
                     _buildCommandButton(
                       context,
                       label: 'AMARELO',
-                      color: Colors.amber,
+                      color: AppPalette.sensorAlert,
                       icon: Icons.warning,
                       enabled: !isSendingCommand,
                     ),
                     _buildCommandButton(
                       context,
                       label: 'VERMELHO',
-                      color: Colors.red,
+                      color: AppPalette.sensorCritical,
                       icon: Icons.dangerous,
                       enabled: !isSendingCommand,
                     ),
                     _buildCommandButton(
                       context,
                       label: 'AUTO',
-                      color: Colors.blue,
+                      color: AppPalette.info,
                       icon: Icons.auto_mode,
                       enabled: !isSendingCommand,
                     ),
@@ -291,9 +308,9 @@ class DashboardPage extends StatelessWidget {
     required String status,
     required IconData icon,
   }) {
-    Color statusColor = Colors.green;
-    if (status == 'ALERTA') statusColor = Colors.amber;
-    if (status == 'CRITICO') statusColor = Colors.red;
+    Color statusColor = AppPalette.sensorOk;
+    if (status == 'ALERTA') statusColor = AppPalette.sensorAlert;
+    if (status == 'CRITICO') statusColor = AppPalette.sensorCritical;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

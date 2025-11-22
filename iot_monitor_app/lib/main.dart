@@ -6,6 +6,7 @@ import 'data/firebase_service.dart';
 import 'cubit/sensor_cubit.dart';
 import 'pages/dashboard_page.dart';
 import 'core/utils/logger.dart';
+import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,22 +34,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Agro Monitor',
+      title: 'Agro Monitor - Cotton',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-          brightness: Brightness.light,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
+      theme: AppTheme.lightTheme,
       home: BlocProvider(
         create: (_) => SensorCubit(service),
         child: const DashboardPage(),
