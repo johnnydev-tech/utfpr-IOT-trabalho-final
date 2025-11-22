@@ -20,22 +20,6 @@
       "type": "dart",
       "program": "lib/main.dart",
       
-    },
-    {
-      "name": "IOT APP (profile mode)",
-      "cwd": "iot_monitor_app",
-      "request": "launch",
-      "type": "dart",
-      "flutterMode": "profile",
-      "program": "lib/main.dart"
-    },
-    {
-      "name": "iot_monitor_app (release mode)",
-      "cwd": "iot_monitor_app",
-      "request": "launch",
-      "type": "dart",
-      "flutterMode": "release",
-      "program": "lib/main.dart"
     }
   ]
 }
