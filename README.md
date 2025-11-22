@@ -22,11 +22,12 @@
   
   <br/>
   
-  <video width="300" controls>
-    <source src="assets/funcionamento.mov" type="video/quicktime">
-    Demonstração do funcionamento do sistema
-  </video>
-  <p><em>Demonstração do funcionamento em tempo real</em></p>
+  <p><strong>Demonstração do Funcionamento em Tempo Real:</strong></p>
+  <a href="assets/funcionamento.mov">
+    <img src="assets/Simulator Screenshot - iPhone 17 Pro - 2025-11-22 at 17.32.35.png" width="300"/>
+    <br/>
+    <em>Clique para assistir ao vídeo de demonstração</em>
+  </a>
 </div>
 
 ## Índice
@@ -90,37 +91,37 @@ Sistema completo de monitoramento IoT para cultivo de algodão, composto por sim
 ### Nível 2: Containers
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                    Sistema IoT Agricultura                       │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌─────────────────────┐         ┌─────────────────────┐       │
-│  │ Arduino Simulator   │         │   Flutter App       │       │
-│  │   (Node.js/TS)     │         │   (Dart/Flutter)    │       │
-│  │                     │         │                     │       │
-│  │ - SensorManager     │         │ - Dashboard UI      │       │
-│  │ - VirtualBoard      │◄───────►│ - State Management  │       │
-│  │ - CLI Interface     │   sync  │ - Real-time Listener│       │
-│  │ - Firebase Client   │         │ - Command Sender    │       │
-│  └─────────┬───────────┘         └─────────┬───────────┘       │
-│            │                               │                   │
-│            │          ┌────────────────────┘                   │
-│            │          │                                        │
-│            ▼          ▼                                        │
-│  ┌──────────────────────────────┐                             │
-│  │  Firebase Realtime Database  │                             │
-│  │                              │                             │
-│  │  /agro/algodao/sensores     │                             │
-│  │    - temperatura             │                             │
-│  │    - luminosidade            │                             │
-│  │    - umidade                 │                             │
-│  │    - umidade_solo            │                             │
-│  │    - ph                      │                             │
-│  │    - pressao                 │                             │
-│  │    - painel (status)         │                             │
-│  └──────────────────────────────┘                             │
-│                                                                │
-└──────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│                      Sistema IoT Agricultura                       │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  ┌──────────────────────┐            ┌──────────────────────┐     │
+│  │ Arduino Simulator    │            │   Flutter App        │     │
+│  │   (Node.js/TS)       │            │   (Dart/Flutter)     │     │
+│  │                      │            │                      │     │
+│  │ - SensorManager      │            │ - Dashboard UI       │     │
+│  │ - VirtualBoard       │◄──────────►│ - State Management   │     │
+│  │ - CLI Interface      │    sync    │ - Real-time Listener │     │
+│  │ - Firebase Client    │            │ - Command Sender     │     │
+│  └──────────┬───────────┘            └──────────┬───────────┘     │
+│             │                                   │                 │
+│             │            ┌──────────────────────┘                 │
+│             │            │                                        │
+│             ▼            ▼                                        │
+│  ┌───────────────────────────────┐                               │
+│  │  Firebase Realtime Database   │                               │
+│  │                               │                               │
+│  │  /agro/algodao/sensores       │                               │
+│  │    - temperatura              │                               │
+│  │    - luminosidade             │                               │
+│  │    - umidade                  │                               │
+│  │    - umidade_solo             │                               │
+│  │    - ph                       │                               │
+│  │    - pressao                  │                               │
+│  │    - painel (status)          │                               │
+│  └───────────────────────────────┘                               │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Nível 3: Componentes
@@ -128,86 +129,86 @@ Sistema completo de monitoramento IoT para cultivo de algodão, composto por sim
 #### Arduino Simulator
 
 ```
-┌────────────────────────────────────────┐
-│        Arduino Simulator (TS)          │
-├────────────────────────────────────────┤
-│                                        │
-│  ┌──────────────────┐                 │
-│  │   Simulator      │                 │
-│  │   (Orchestrator) │                 │
-│  └────────┬─────────┘                 │
-│           │                            │
-│     ┌─────┼─────┬──────────┐          │
-│     ▼     ▼     ▼          ▼          │
-│  ┌────┐ ┌────┐ ┌────┐  ┌──────┐      │
-│  │Sns │ │FB  │ │CLI │  │Config│      │
-│  │Mgr │ │Clnt│ │    │  │      │      │
-│  └────┘ └────┘ └────┘  └──────┘      │
-│                                        │
-│  SensorManager:                        │
-│  - Leitura de sensores                │
-│  - Validação de limites               │
-│  - Cálculo de status                  │
-│                                        │
-│  FirebaseClient:                       │
-│  - Envio de dados                     │
-│  - Escuta de comandos                 │
-│                                        │
-│  CLI:                                  │
-│  - Comandos interativos               │
-│  - Modo manual/automático             │
-│                                        │
-└────────────────────────────────────────┘
+┌──────────────────────────────────────────┐
+│        Arduino Simulator (TS)            │
+├──────────────────────────────────────────┤
+│                                          │
+│  ┌────────────────────┐                 │
+│  │   Simulator        │                 │
+│  │   (Orchestrator)   │                 │
+│  └─────────┬──────────┘                 │
+│            │                             │
+│      ┌─────┼─────┬──────────┐           │
+│      ▼     ▼     ▼          ▼           │
+│  ┌──────┐ ┌──┐ ┌────┐  ┌────────┐      │
+│  │Sensor│ │FB│ │CLI │  │ Config │      │
+│  │ Mgr  │ │  │ │    │  │        │      │
+│  └──────┘ └──┘ └────┘  └────────┘      │
+│                                          │
+│  SensorManager:                          │
+│  - Leitura de sensores                  │
+│  - Validação de limites                 │
+│  - Cálculo de status                    │
+│                                          │
+│  FirebaseClient:                         │
+│  - Envio de dados                       │
+│  - Escuta de comandos                   │
+│                                          │
+│  CLI:                                    │
+│  - Comandos interativos                 │
+│  - Modo manual/automático               │
+│                                          │
+└──────────────────────────────────────────┘
 ```
 
 #### Flutter App
 
 ```
-┌────────────────────────────────────────────┐
-│           Flutter App (Clean Arch)         │
-├────────────────────────────────────────────┤
-│                                            │
-│  ┌──────────────────┐                     │
-│  │   Presentation   │                     │
-│  │                  │                     │
-│  │  ┌────────────┐  │                     │
-│  │  │ Dashboard  │  │                     │
-│  │  │   Page     │  │                     │
-│  │  └─────┬──────┘  │                     │
-│  │        │         │                     │
-│  │        ▼         │                     │
-│  │  ┌────────────┐  │                     │
-│  │  │ Sensor     │  │                     │
-│  │  │  Cubit     │  │                     │
-│  │  └─────┬──────┘  │                     │
-│  └────────┼─────────┘                     │
-│           │                                │
-│  ┌────────▼─────────┐                     │
-│  │      Data        │                     │
-│  │                  │                     │
-│  │  ┌────────────┐  │                     │
-│  │  │ Firebase   │  │                     │
-│  │  │  Service   │  │                     │
-│  │  └────────────┘  │                     │
-│  │                  │                     │
-│  │  Either<L,R>     │                     │
-│  │  Error Handling  │                     │
-│  └──────────────────┘                     │
-│                                            │
-│  ┌──────────────────┐                     │
-│  │     Domain       │                     │
-│  │                  │                     │
-│  │  ┌────────────┐  │                     │
-│  │  │ Sensor     │  │                     │
-│  │  │  Model     │  │                     │
-│  │  └────────────┘  │                     │
-│  │                  │                     │
-│  │  ┌────────────┐  │                     │
-│  │  │ Failures   │  │                     │
-│  │  └────────────┘  │                     │
-│  └──────────────────┘                     │
-│                                            │
-└────────────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│         Flutter App (Clean Arch)             │
+├──────────────────────────────────────────────┤
+│                                              │
+│  ┌────────────────────┐                     │
+│  │   Presentation     │                     │
+│  │                    │                     │
+│  │  ┌──────────────┐  │                     │
+│  │  │  Dashboard   │  │                     │
+│  │  │    Page      │  │                     │
+│  │  └──────┬───────┘  │                     │
+│  │         │           │                     │
+│  │         ▼           │                     │
+│  │  ┌──────────────┐  │                     │
+│  │  │   Sensor     │  │                     │
+│  │  │    Cubit     │  │                     │
+│  │  └──────┬───────┘  │                     │
+│  └─────────┼──────────┘                     │
+│            │                                 │
+│  ┌─────────▼──────────┐                     │
+│  │       Data         │                     │
+│  │                    │                     │
+│  │  ┌──────────────┐  │                     │
+│  │  │  Firebase    │  │                     │
+│  │  │   Service    │  │                     │
+│  │  └──────────────┘  │                     │
+│  │                    │                     │
+│  │  Either<L,R>       │                     │
+│  │  Error Handling    │                     │
+│  └────────────────────┘                     │
+│                                              │
+│  ┌────────────────────┐                     │
+│  │      Domain        │                     │
+│  │                    │                     │
+│  │  ┌──────────────┐  │                     │
+│  │  │   Sensor     │  │                     │
+│  │  │    Model     │  │                     │
+│  │  └──────────────┘  │                     │
+│  │                    │                     │
+│  │  ┌──────────────┐  │                     │
+│  │  │  Failures    │  │                     │
+│  │  └──────────────┘  │                     │
+│  └────────────────────┘                     │
+│                                              │
+└──────────────────────────────────────────────┘
 ```
 
 ### Nível 4: Código
