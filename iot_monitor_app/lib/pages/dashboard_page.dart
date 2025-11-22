@@ -13,7 +13,18 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Monitor Algodão'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/algodao.png',
+              height: AppConstants.iconSizeLarge,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: AppConstants.paddingSmall),
+            const Text('Monitor Algodão'),
+          ],
+        ),
         elevation: AppConstants.elevationSmall,
       ),
       body: BlocConsumer<SensorCubit, SensorState>(
@@ -178,7 +189,7 @@ class DashboardPage extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(AppConstants.paddingLarge),
             decoration: BoxDecoration(
-              color: panelColor.withOpacity(0.1),
+              color: panelColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(
                 AppConstants.borderRadiusNormal,
               ),
@@ -313,9 +324,9 @@ class DashboardPage extends StatelessWidget {
     if (status == 'CRITICO') statusColor = AppPalette.sensorCritical;
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
       child: ListTile(
+        minVerticalPadding: 0,
+        contentPadding: const EdgeInsets.all(AppConstants.paddingNormal),
         leading: Icon(icon, size: 40, color: statusColor),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Column(
