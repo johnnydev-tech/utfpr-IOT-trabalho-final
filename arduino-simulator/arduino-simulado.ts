@@ -1,7 +1,7 @@
 // arduino-simulado.ts
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getDatabase, DataSnapshot } from 'firebase-admin/database';
-import { Board, Sensor } from 'johnny-five';
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getDatabase } = require('firebase-admin/database');
+const { Board, Sensor } = require('johnny-five');
 const Firmata = require('mock-firmata');
 
 // Definição de tipos
@@ -23,8 +23,8 @@ interface Command {
 }
 
 // Inicializar Firebase Admin (use sua chave JSON)
-import * as serviceAccount from './serviceAccountKey.json';
-initializeApp({ credential: cert(serviceAccount as any), databaseURL: 'https://utfpr-iot-trabalho-final.firebaseio.com' });
+const serviceAccount = require('./serviceAccountKey.json');
+initializeApp({ credential: cert(serviceAccount), databaseURL: 'https://utfpr-iot-trabalho-final-default-rtdb.firebaseio.com' });
 const db = getDatabase();
 
 const board = new Board({ io: new Firmata(), repl: false });
@@ -60,7 +60,7 @@ board.on('ready', () => {
   }, 2000);
 
   // Escutar comandos do app
-  db.ref('/agro/algodao/comandos').on('value', (snap: DataSnapshot) => {
+  db.ref('/agro/algodao/comandos').on('value', (snap: any) => {
     const cmd: Command | null = snap.val();
     if (!cmd) return;
     if (cmd.forcar_estado && cmd.forcar_estado !== 'AUTO') {
