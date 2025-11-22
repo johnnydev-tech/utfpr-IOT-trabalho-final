@@ -23,11 +23,9 @@
   <br/>
   
   <p><strong>Demonstração do Funcionamento em Tempo Real:</strong></p>
-  <a href="assets/funcionamento.mov">
-    <img src="assets/Simulator Screenshot - iPhone 17 Pro - 2025-11-22 at 17.32.35.png" width="300"/>
-    <br/>
-    <em>Clique para assistir ao vídeo de demonstração</em>
-  </a>
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/Zj5sTTthiWE" 
+          frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen></iframe>
 </div>
 
 ## Índice
