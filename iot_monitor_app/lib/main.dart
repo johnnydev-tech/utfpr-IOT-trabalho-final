@@ -7,6 +7,7 @@ import 'cubit/sensor_cubit.dart';
 import 'pages/dashboard_page.dart';
 import 'core/utils/logger.dart';
 import 'core/theme/app_theme.dart';
+import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,8 +19,12 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     AppLogger.info('✅ Firebase inicializado com sucesso');
+
+    // Inicializar notificações
+    await NotificationService().initialize();
+    AppLogger.info('Notificações inicializadas');
   } catch (e, stackTrace) {
-    AppLogger.fatal('❌ Erro ao inicializar Firebase', e, stackTrace);
+    AppLogger.fatal('Erro ao inicializar Firebase', e, stackTrace);
     rethrow;
   }
 
@@ -34,7 +39,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Agro Monitor - Cotton',
+      title: 'Cotton Monitor',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: BlocProvider(

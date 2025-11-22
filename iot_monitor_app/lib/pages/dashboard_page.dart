@@ -3,11 +3,80 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/sensor_cubit.dart';
 import '../cubit/sensor_state.dart';
 import '../models/sensor_model.dart';
+import '../models/notification_model.dart';
 import '../core/theme/app_palette.dart';
 import '../core/theme/app_constants.dart';
+import '../core/services/notification_service.dart';
+import '../data/notification_repository.dart';
+import 'notifications_page.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  final Set<String> _notifiedSensors = {};
+
+  void _checkCriticalAlerts(SensoresPayload data) async {
+    final sensors = [
+      {
+        'name': 'temperatura',
+        'value': data.temperatura,
+        'label': 'Temperatura',
+      },
+      {
+        'name': 'luminosidade',
+        'value': data.luminosidade,
+        'label': 'Luminosidade',
+      },
+      {'name': 'umidade', 'value': data.umidade, 'label': 'Umidade do Ar'},
+      {
+        'name': 'umidade_solo',
+        'value': data.umidadeSolo,
+        'label': 'Umidade do Solo',
+      },
+      {'name': 'ph', 'value': data.ph, 'label': 'pH do Solo'},
+      {'name': 'pressao', 'value': data.pressao, 'label': 'Pressão'},
+    ];
+
+    for (final sensor in sensors) {
+      final sensorName = sensor['name'] as String;
+      final sensorValue = sensor['value'] as SensorValue;
+      final sensorLabel = sensor['label'] as String;
+
+      if (sensorValue.status == 'CRITICO') {
+        if (!_notifiedSensors.contains(sensorName)) {
+          _notifiedSensors.add(sensorName);
+          
+          // Mostrar notificação local
+          NotificationService().showCriticalAlert(
+            title: 'Alerta Crítico: $sensorLabel',
+            body:
+                '${sensorValue.valor}${sensorValue.unidade} - Ação imediata necessária!',
+            sensorName: sensorName,
+          );
+          
+          // Salvar no Firebase
+          final notification = AlertNotification(
+            id: '',
+            sensorName: sensorName,
+            sensorLabel: sensorLabel,
+            valor: sensorValue.valor,
+            unidade: sensorValue.unidade,
+            status: sensorValue.status,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          );
+          
+          await NotificationRepository().saveNotification(notification);
+        }
+      } else {
+        _notifiedSensors.remove(sensorName);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,53 +85,80 @@ class DashboardPage extends StatelessWidget {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              'assets/images/algodao.png',
-              height: AppConstants.iconSizeLarge,
-              fit: BoxFit.contain,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(
+                AppConstants.borderRadiusSmall,
+              ),
+              child: Image.asset(
+                'assets/images/cotton_icon.png',
+                height: AppConstants.iconSizeMedium,
+                fit: BoxFit.contain,
+              ),
             ),
             const SizedBox(width: AppConstants.paddingSmall),
             const Text('Monitor Algodão'),
           ],
         ),
         elevation: AppConstants.elevationSmall,
+        actions: [
+          // Botão de notificações com badge
+          StreamBuilder<List<AlertNotification>>(
+            stream: NotificationRepository().watchNotifications(),
+            builder: (context, snapshot) {
+              final unreadCount = snapshot.data
+                      ?.where((n) => !n.lida)
+                      .length ?? 0;
+              
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationsPage(),
+                        ),
+                      );
+                    },
+                    tooltip: 'Histórico de Alertas',
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppPalette.error,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          unreadCount > 9 ? '9+' : '$unreadCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: BlocConsumer<SensorCubit, SensorState>(
         listener: (context, state) {
-          // Show snackbars for command results
-          if (state is SensorCommandSent) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    const Icon(Icons.check_circle, color: Colors.white),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(state.message)),
-                  ],
-                ),
-                backgroundColor: AppPalette.success,
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          } else if (state is SensorCommandFailed) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    const Icon(Icons.error, color: Colors.white),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(state.failure.message)),
-                  ],
-                ),
-                backgroundColor: AppPalette.error,
-                duration: const Duration(seconds: 3),
-                action: SnackBarAction(
-                  label: 'OK',
-                  textColor: Colors.white,
-                  onPressed: () {},
-                ),
-              ),
-            );
+          // Verificar alertas críticos e enviar notificações
+          if (state is SensorLoaded) {
+            _checkCriticalAlerts(state.data);
           }
         },
         builder: (context, state) {
@@ -141,13 +237,11 @@ class DashboardPage extends StatelessWidget {
 
     // Extract data from loaded states
     SensoresPayload? data;
-    bool isSendingCommand = false;
 
     if (state is SensorLoaded) {
       data = state.data;
     } else if (state is SensorSendingCommand) {
       data = state.currentData;
-      isSendingCommand = true;
     } else if (state is SensorCommandSent) {
       data = state.data;
     } else if (state is SensorCommandFailed) {
@@ -158,14 +252,10 @@ class DashboardPage extends StatelessWidget {
       return const Center(child: Text('Aguardando dados...'));
     }
 
-    return _buildDashboard(context, data, isSendingCommand);
+    return _buildDashboard(context, data);
   }
 
-  Widget _buildDashboard(
-    BuildContext context,
-    SensoresPayload data,
-    bool isSendingCommand,
-  ) {
+  Widget _buildDashboard(BuildContext context, SensoresPayload data) {
     Color panelColor = AppPalette.sensorOk;
     IconData panelIcon = Icons.check_circle;
 
@@ -228,11 +318,12 @@ class DashboardPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           _buildSensorCard(
             context,
             title: 'Temperatura',
-            value: '${data.temperatura.valor.toStringAsFixed(1)}${data.temperatura.unidade}',
+            value:
+                '${data.temperatura.valor.toStringAsFixed(1)}${data.temperatura.unidade}',
             status: data.temperatura.status,
             icon: Icons.thermostat,
           ),
@@ -240,29 +331,32 @@ class DashboardPage extends StatelessWidget {
           _buildSensorCard(
             context,
             title: 'Luminosidade',
-            value: '${data.luminosidade.valor.toStringAsFixed(0)}${data.luminosidade.unidade}',
+            value:
+                '${data.luminosidade.valor.toStringAsFixed(0)}${data.luminosidade.unidade}',
             status: data.luminosidade.status,
             icon: Icons.wb_sunny,
           ),
-          
+
           _buildSensorCard(
             context,
             title: 'Umidade do Ar',
-            value: '${data.umidade.valor.toStringAsFixed(1)}${data.umidade.unidade}',
+            value:
+                '${data.umidade.valor.toStringAsFixed(1)}${data.umidade.unidade}',
             status: data.umidade.status,
             icon: Icons.water_drop,
           ),
-          
+
           _buildSensorCard(
             context,
             title: 'Pressão Atmosférica',
-            value: '${data.pressao.valor.toStringAsFixed(0)}${data.pressao.unidade}',
+            value:
+                '${data.pressao.valor.toStringAsFixed(0)}${data.pressao.unidade}',
             status: data.pressao.status,
             icon: Icons.compress,
           ),
 
           const SizedBox(height: 24),
-          
+
           // Sensores do Solo
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -272,15 +366,16 @@ class DashboardPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           _buildSensorCard(
             context,
             title: 'Umidade do Solo',
-            value: '${data.umidadeSolo.valor.toStringAsFixed(1)}${data.umidadeSolo.unidade}',
+            value:
+                '${data.umidadeSolo.valor.toStringAsFixed(1)}${data.umidadeSolo.unidade}',
             status: data.umidadeSolo.status,
             icon: Icons.grass,
           ),
-          
+
           _buildSensorCard(
             context,
             title: 'pH do Solo',
@@ -289,77 +384,7 @@ class DashboardPage extends StatelessWidget {
             icon: Icons.science,
           ),
 
-          const SizedBox(height: 24),
-
-          // Control Buttons
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Controles Manuais',
-                  style: Theme.of(context).textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _buildCommandButton(
-                      context,
-                      label: 'VERDE',
-                      color: AppPalette.sensorOk,
-                      icon: Icons.check,
-                      enabled: !isSendingCommand,
-                    ),
-                    _buildCommandButton(
-                      context,
-                      label: 'AMARELO',
-                      color: AppPalette.sensorAlert,
-                      icon: Icons.warning,
-                      enabled: !isSendingCommand,
-                    ),
-                    _buildCommandButton(
-                      context,
-                      label: 'VERMELHO',
-                      color: AppPalette.sensorCritical,
-                      icon: Icons.dangerous,
-                      enabled: !isSendingCommand,
-                    ),
-                    _buildCommandButton(
-                      context,
-                      label: 'AUTO',
-                      color: AppPalette.info,
-                      icon: Icons.auto_mode,
-                      enabled: !isSendingCommand,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          if (isSendingCommand)
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  SizedBox(width: 12),
-                  Text('Enviando comando...'),
-                ],
-              ),
-            ),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -393,27 +418,6 @@ class DashboardPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCommandButton(
-    BuildContext context, {
-    required String label,
-    required Color color,
-    required IconData icon,
-    required bool enabled,
-  }) {
-    return ElevatedButton.icon(
-      onPressed: enabled
-          ? () => context.read<SensorCubit>().forcarEstado(label)
-          : null,
-      icon: Icon(icon, size: 20),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: enabled ? color : Colors.grey,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }
