@@ -59,6 +59,7 @@ Sistema completo de monitoramento IoT para cultivo de algodão, composto por sim
 
 - Sistema de alertas por cores (Verde/Amarelo/Vermelho)
 - Sincronização em tempo real via Firebase
+- Johnny-Five com mock-firmata para simulação de Arduino
 - Arquitetura preparada para hardware real
 - Interface responsiva e moderna
 
@@ -301,9 +302,9 @@ arduino-simulator/
 │       └── CLI.ts             # Interface CLI
 ```
 
-**Preparado para Hardware Real:**
+**Implementação com Johnny-Five:**
 
-A arquitetura suporta migração para Arduino físico com johnny-five. Basta trocar `VirtualBoard` por implementação com sensores reais.
+O simulador utiliza Johnny-Five com mock-firmata para simular o Arduino. A arquitetura está pronta para migração para hardware real - basta remover o mock-firmata e conectar Arduino via USB.
 
 ## Aplicativo Flutter
 
