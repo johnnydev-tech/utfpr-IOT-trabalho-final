@@ -100,10 +100,11 @@ Sistema completo de monitoramento IoT para cultivo de algodão, composto por sim
 │  │ Arduino Simulator    │            │   Flutter App        │     │
 │  │   (Node.js/TS)       │            │   (Dart/Flutter)     │     │
 │  │                      │            │                      │     │
-│  │ - SensorManager      │            │ - Dashboard UI       │     │
-│  │ - VirtualBoard       │◄──────────►│ - State Management   │     │
-│  │ - CLI Interface      │    sync    │ - Real-time Listener │     │
-│  │ - Firebase Client    │            │ - Command Sender     │     │
+│  │ - Johnny-Five        │            │ - Dashboard UI       │     │
+│  │ - Mock-Firmata       │            │ - State Management   │     │
+│  │ - SensorManager      │◄──────────►│ - Real-time Listener │     │
+│  │ - CLI Interface      │    sync    │ - Command Sender     │     │
+│  │ - Firebase Client    │            │                      │     │
 │  └──────────┬───────────┘            └──────────┬───────────┘     │
 │             │                                   │                 │
 │             │            ┌──────────────────────┘                 │
@@ -130,36 +131,40 @@ Sistema completo de monitoramento IoT para cultivo de algodão, composto por sim
 #### Arduino Simulator
 
 ```
-┌──────────────────────────────────────────┐
-│        Arduino Simulator (TS)            │
-├──────────────────────────────────────────┤
-│                                          │
-│  ┌────────────────────┐                 │
-│  │   Simulator        │                 │
-│  │   (Orchestrator)   │                 │
-│  └─────────┬──────────┘                 │
-│            │                             │
-│      ┌─────┼─────┬──────────┐           │
-│      ▼     ▼     ▼          ▼           │
-│  ┌──────┐ ┌──┐ ┌────┐  ┌────────┐      │
-│  │Sensor│ │FB│ │CLI │  │ Config │      │
-│  │ Mgr  │ │  │ │    │  │        │      │
-│  └──────┘ └──┘ └────┘  └────────┘      │
-│                                          │
-│  SensorManager:                          │
-│  - Leitura de sensores                  │
-│  - Validação de limites                 │
-│  - Cálculo de status                    │
-│                                          │
-│  FirebaseClient:                         │
-│  - Envio de dados                       │
-│  - Escuta de comandos                   │
-│                                          │
-│  CLI:                                    │
-│  - Comandos interativos                 │
-│  - Modo manual/automático               │
-│                                          │
-└──────────────────────────────────────────┘
+┌────────────────────────────────────────────┐
+│        Arduino Simulator (TS)              │
+├────────────────────────────────────────────┤
+│                                            │
+│  ┌──────────────────┐                     │
+│  │   Simulator      │                     │
+│  │  (Orchestrator)  │                     │
+│  └────────┬─────────┘                     │
+│           │                                │
+│     ┌─────┼──────┬──────────┐             │
+│     ▼     ▼      ▼          ▼             │
+│  ┌─────┐ ┌──┐ ┌────┐  ┌────────┐         │
+│  │Snsr │ │FB│ │CLI │  │ Config │         │
+│  │ Mgr │ │  │ │    │  │        │         │
+│  └─────┘ └──┘ └────┘  └────────┘         │
+│                                            │
+│  Johnny-Five + Mock-Firmata:               │
+│  - Simula Arduino Board                   │
+│  - API compatível com hardware real       │
+│                                            │
+│  SensorManager:                            │
+│  - Leitura de sensores                    │
+│  - Validação de limites                   │
+│  - Cálculo de status                      │
+│                                            │
+│  FirebaseClient:                           │
+│  - Envio de dados                         │
+│  - Escuta de comandos                     │
+│                                            │
+│  CLI:                                      │
+│  - Comandos interativos                   │
+│  - Modo manual/automático                 │
+│                                            │
+└────────────────────────────────────────────┘
 ```
 
 #### Flutter App
