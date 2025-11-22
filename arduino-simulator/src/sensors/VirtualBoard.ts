@@ -1,17 +1,26 @@
 // src/sensors/VirtualBoard.ts
+import { Board } from 'johnny-five';
 import { SensorManager } from './SensorManager';
 import { CONFIG } from '../config';
 
 /**
- * VirtualBoard simula um Arduino com johnny-five
+ * VirtualBoard usa johnny-five com mock-firmata para simular Arduino
  */
 export class VirtualBoard {
+  private board: Board;
   private sensorManager: SensorManager;
   private ready: boolean = false;
   
   constructor() {
     this.sensorManager = new SensorManager();
     this.initializeSensors();
+    
+    // Inicializa Johnny-Five com mock-firmata (simulação)
+    this.board = new Board({
+      io: require('mock-firmata'),
+      repl: false,
+      debug: false
+    });
   }
   
   private initializeSensors(): void {
@@ -22,17 +31,27 @@ export class VirtualBoard {
   }
   
   async initialize(): Promise<void> {
-    console.log('[INFO] Inicializando Virtual Board...');
+    console.log('[INFO] Inicializando Johnny-Five Board (mock-firmata)...');
     
-    // Simula inicialização do Arduino
     return new Promise((resolve) => {
-      setTimeout(() => {
+      this.board.on('ready', () => {
         this.ready = true;
-        console.log('[OK] Virtual Board pronta!');
+        console.log('[OK] Johnny-Five Board pronta!');
+        console.log('[INFO] Modo: Simulação (mock-firmata)');
         console.log('[INFO] Sensores disponíveis:', 
           Array.from(this.sensorManager.getAllSensors().keys()).join(', '));
         resolve();
-      }, 500);
+      });
+      
+      this.board.on('error', (error) => {
+        console.error('[ERRO] Falha ao inicializar board:', error);
+        // Fallback para modo simulado puro
+        setTimeout(() => {
+          this.ready = true;
+          console.log('[OK] Board em modo simulado (fallback)');
+          resolve();
+        }, 500);
+      });
     });
   }
   
@@ -51,52 +70,87 @@ export class VirtualBoard {
     
     return this.sensorManager.readAll();
   }
+  
+  getBoard(): Board {
+    return this.board;
+  }
 }
 
 /**
- * Exemplo de como seria com johnny-five real:
+ * Para usar com Arduino físico, remova mock-firmata do constructor:
  * 
- * import * as five from 'johnny-five';
- * 
- * export class RealBoard {
- *   private board: five.Board;
- *   private temperature: five.Thermometer;
- *   private light: five.Sensor;
+ * constructor() {
+ *   this.sensorManager = new SensorManager();
+ *   this.initializeSensors();
  *   
- *   async initialize(): Promise<void> {
- *     return new Promise((resolve) => {
- *       this.board = new five.Board();
- *       
- *       this.board.on('ready', () => {
- *         // Temperatura - sensor DHT22 ou DS18B20
- *         this.temperature = new five.Thermometer({
- *           controller: 'DHT22',
- *           pin: 2
- *         });
- *         
- *         // Luminosidade - sensor LDR
- *         this.light = new five.Sensor({
- *           pin: 'A0',
- *           freq: 1000
- *         });
- *         
- *         // pH sensor
- *         this.ph = new five.Sensor({
- *           pin: 'A1',
- *           freq: 1000
- *         });
- *         
- *         resolve();
- *       });
- *     });
- *   }
- *   
- *   readTemperature(): number {
- *     return this.temperature.celsius;
- *   }
- *   
- *   readLight(): number {
- *     return this.light.value;
- *   }
+ *   // Johnny-Five detectará automaticamente o Arduino conectado via USB
+ *   this.board = new Board({
+ *     repl: false,
+ *     debug: false
+ *   });
  * }
+ * 
+ * E no método ready, configure os sensores reais:
+ * 
+ * this.board.on('ready', () => {
+ *   // DHT22 - Temperatura e Umidade (pin 2)
+ *   const tempHumidity = new Thermometer({
+ *     controller: 'DHT22',
+ *     pin: 2,
+ *     freq: 2000
+ *   });
+ *   
+ *   tempHumidity.on('data', () => {
+ *     this.sensorManager.setSensorValue('temperatura', tempHumidity.celsius);
+ *     this.sensorManager.setSensorValue('umidade', tempHumidity.relativeHumidity);
+ *   });
+ *   
+ *   // LDR - Sensor de Luminosidade (pin A0)
+ *   const light = new Sensor({
+ *     pin: 'A0',
+ *     freq: 2000
+ *   });
+ *   
+ *   light.on('data', () => {
+ *     // Converter valor do sensor (0-1023) para lux
+ *     const lux = (light.value / 1023) * 1000;
+ *     this.sensorManager.setSensorValue('luminosidade', lux);
+ *   });
+ *   
+ *   // Sensor de Umidade do Solo (pin A1)
+ *   const soilMoisture = new Sensor({
+ *     pin: 'A1',
+ *     freq: 2000
+ *   });
+ *   
+ *   soilMoisture.on('data', () => {
+ *     // Converter para percentual
+ *     const moisture = (soilMoisture.value / 1023) * 100;
+ *     this.sensorManager.setSensorValue('umidade_solo', moisture);
+ *   });
+ *   
+ *   // pH Sensor (pin A2)
+ *   const ph = new Sensor({
+ *     pin: 'A2',
+ *     freq: 2000
+ *   });
+ *   
+ *   ph.on('data', () => {
+ *     // Converter valor para pH (0-14)
+ *     const phValue = (ph.value / 1023) * 14;
+ *     this.sensorManager.setSensorValue('ph', phValue);
+ *   });
+ *   
+ *   // Barômetro BMP280 - Pressão Atmosférica (I2C)
+ *   const barometer = new Barometer({
+ *     controller: 'BMP280',
+ *     freq: 2000
+ *   });
+ *   
+ *   barometer.on('data', () => {
+ *     this.sensorManager.setSensorValue('pressao', barometer.pressure);
+ *   });
+ *   
+ *   this.ready = true;
+ * });
  */
