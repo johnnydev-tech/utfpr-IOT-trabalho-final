@@ -42,12 +42,50 @@ interface Command {
 }
 
 // ============ INICIALIZAÇÃO DO FIREBASE ============
-const serviceAccount = require('./serviceAccountKey.json');
-initializeApp({ 
-  credential: cert(serviceAccount), 
-  databaseURL: 'https://utfpr-iot-trabalho-final-default-rtdb.firebaseio.com' 
-});
-const db = getDatabase();
+// Tenta carregar serviceAccountKey, se falhar usa método alternativo
+let app;
+let usandoModoDev = false;
+
+try {
+  const serviceAccount = require('./serviceAccountKey.json');
+  
+  // Verifica se é um arquivo de exemplo (placeholder)
+  if (serviceAccount.private_key.includes('YOUR_PRIVATE_KEY_HERE')) {
+    throw new Error('serviceAccountKey.json contém dados de exemplo.');
+  }
+  
+  app = initializeApp({ 
+    credential: cert(serviceAccount), 
+    databaseURL: 'https://utfpr-iot-trabalho-final-default-rtdb.firebaseio.com' 
+  });
+  console.log('✅ Firebase inicializado com Service Account (modo seguro)');
+} catch (error) {
+  usandoModoDev = true;
+  console.warn('\n⚠️  MODO DE DESENVOLVIMENTO');
+  console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.warn('Não foi possível carregar serviceAccountKey.json válido.');
+  console.warn('O simulador enviará dados, mas você verá warnings do Firebase.');
+  console.warn('');
+  console.warn('📝 Para usar sem warnings (recomendado):');
+  console.warn('   1. Acesse: https://console.firebase.google.com');
+  console.warn('   2. Project Settings > Service Accounts');
+  console.warn('   3. Clique em "Generate New Private Key"');
+  console.warn('   4. Salve como: serviceAccountKey.json nesta pasta');
+  console.warn('');
+  console.warn('📝 Para testar rapidamente:');
+  console.warn('   Configure as regras do Firebase Database como públicas');
+  console.warn('   (apenas para desenvolvimento)');
+  console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  
+  // Modo de desenvolvimento - funciona mas gera warnings
+  const { initializeApp: initApp } = require('firebase-admin/app');
+  app = initApp({
+    databaseURL: 'https://utfpr-iot-trabalho-final-default-rtdb.firebaseio.com',
+    databaseAuthVariableOverride: null  // null = sem autenticação
+  });
+}
+
+const db = getDatabase(app);
 
 // ============ VARIÁVEIS DE CONTROLE ============
 let modoManual = false;
@@ -192,6 +230,25 @@ rl.on('line', (line: string) => {
   rl.prompt();
 });
 
+// ============ SUPRIMIR WARNINGS DO FIREBASE EM MODO DEV ============
+if (usandoModoDev) {
+  // Captura e filtra logs do Firebase em modo desenvolvimento
+  const originalWarn = console.warn;
+  const originalError = console.error;
+  
+  console.warn = function(...args: any[]) {
+    const message = args.join(' ');
+    // Filtra apenas warnings específicos do Firebase sobre credenciais em modo dev
+    if (message.includes('@firebase/database') && 
+        message.includes('invalid-credential') &&
+        message.includes('metadata.google.internal')) {
+      // Suprime esses warnings específicos em modo dev
+      return;
+    }
+    originalWarn.apply(console, args);
+  };
+}
+
 // ============ INICIALIZAÇÃO ============
 console.log('🚀 Iniciando Arduino Simulado...');
 console.log('📡 Conectando ao Firebase...');
@@ -199,6 +256,9 @@ console.log('📡 Conectando ao Firebase...');
 // Aguardar conexão com Firebase
 setTimeout(() => {
   console.log('✓ Conectado ao Firebase!');
+  if (usandoModoDev) {
+    console.log('ℹ️  Warnings do Firebase foram suprimidos em modo desenvolvimento\n');
+  }
   mostrarMenu();
 
   
