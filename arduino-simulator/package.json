@@ -2,10 +2,12 @@
   "name": "arduino-simulado",
   "version": "1.0.0",
   "description": "Simulated Arduino for IoT Cotton Monitoring",
-  "main": "dist/arduino-simulado.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "ts-node arduino-simulado.ts",
-    "build": "tsc"
+    "dev": "ts-node index.ts",
+    "dev:old": "ts-node arduino-simulado.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",

@@ -219,11 +219,20 @@ class DashboardPage extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Sensor Cards
+          // Sensores Atmosféricos
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'Condições Atmosféricas',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
+          const SizedBox(height: 8),
+          
           _buildSensorCard(
             context,
             title: 'Temperatura',
-            value: '${data.temperatura.valor.toStringAsFixed(1)}°C',
+            value: '${data.temperatura.valor.toStringAsFixed(1)}${data.temperatura.unidade}',
             status: data.temperatura.status,
             icon: Icons.thermostat,
           ),
@@ -231,9 +240,53 @@ class DashboardPage extends StatelessWidget {
           _buildSensorCard(
             context,
             title: 'Luminosidade',
-            value: '${data.luminosidade.valor} lux',
+            value: '${data.luminosidade.valor.toStringAsFixed(0)}${data.luminosidade.unidade}',
             status: data.luminosidade.status,
             icon: Icons.wb_sunny,
+          ),
+          
+          _buildSensorCard(
+            context,
+            title: 'Umidade do Ar',
+            value: '${data.umidade.valor.toStringAsFixed(1)}${data.umidade.unidade}',
+            status: data.umidade.status,
+            icon: Icons.water_drop,
+          ),
+          
+          _buildSensorCard(
+            context,
+            title: 'Pressão Atmosférica',
+            value: '${data.pressao.valor.toStringAsFixed(0)}${data.pressao.unidade}',
+            status: data.pressao.status,
+            icon: Icons.compress,
+          ),
+
+          const SizedBox(height: 24),
+          
+          // Sensores do Solo
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'Condições do Solo',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
+          const SizedBox(height: 8),
+          
+          _buildSensorCard(
+            context,
+            title: 'Umidade do Solo',
+            value: '${data.umidadeSolo.valor.toStringAsFixed(1)}${data.umidadeSolo.unidade}',
+            status: data.umidadeSolo.status,
+            icon: Icons.grass,
+          ),
+          
+          _buildSensorCard(
+            context,
+            title: 'pH do Solo',
+            value: '${data.ph.valor.toStringAsFixed(1)}${data.ph.unidade}',
+            status: data.ph.status,
+            icon: Icons.science,
           ),
 
           const SizedBox(height: 24),

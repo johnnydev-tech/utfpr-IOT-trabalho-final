@@ -18,12 +18,10 @@ class AppTheme {
         primary: AppPalette.primary,
         secondary: AppPalette.secondary,
         surface: AppPalette.cardBackground,
-        background: AppPalette.background,
         error: AppPalette.error,
         onPrimary: AppPalette.white,
         onSecondary: AppPalette.white,
         onSurface: AppPalette.dark,
-        onBackground: AppPalette.dark,
         onError: AppPalette.white,
       ),
 

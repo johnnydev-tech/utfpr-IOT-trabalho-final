@@ -41,6 +41,7 @@ dependencies:
   dartz: ^0.10.1
   logger: ^2.0.0
   google_fonts: ^6.3.2
+  flutter_local_notifications: ^19.5.0
 
 dev_dependencies:
   flutter_test:

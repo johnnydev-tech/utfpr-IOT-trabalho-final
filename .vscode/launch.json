@@ -5,11 +5,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Arduino Simulado",
+      "name": "Arduino Simulado (Nova Arquitetura)",
       "type": "node",
       "request": "launch",
       "runtimeArgs": ["-r", "ts-node/register"],
-      "args": ["${workspaceFolder}/arduino-simulator/arduino-simulado.ts"],
+      "args": ["${workspaceFolder}/arduino-simulator/index.ts"],
       "cwd": "${workspaceFolder}/arduino-simulator",
       "console": "integratedTerminal"
     },

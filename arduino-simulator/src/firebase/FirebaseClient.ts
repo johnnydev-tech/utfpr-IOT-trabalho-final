@@ -1,6 +1,8 @@
 // src/firebase/FirebaseClient.ts
 import { initializeApp, cert, App } from 'firebase-admin/app';
 import { getDatabase, Database } from 'firebase-admin/database';
+import * as path from 'path';
+import * as fs from 'fs';
 import { Payload, Command, Painel } from '../types';
 import { FIREBASE_CONFIG } from '../config';
 
@@ -16,10 +18,24 @@ export class FirebaseClient {
   
   private initializeFirebase(): App {
     try {
-      const serviceAccount = require('../../serviceAccountKey.json');
+      // Buscar serviceAccountKey.json na raiz do projeto
+      const projectRoot = path.resolve(__dirname, '..', '..');
+      const serviceAccountPath = path.join(projectRoot, 'serviceAccountKey.json');
       
-      if (serviceAccount.private_key.includes('YOUR_PRIVATE_KEY_HERE')) {
-        throw new Error('serviceAccountKey.json contém dados de exemplo.');
+      // Verificar se o arquivo existe
+      if (!fs.existsSync(serviceAccountPath)) {
+        throw new Error(`Arquivo não encontrado: ${serviceAccountPath}`);
+      }
+      
+      const serviceAccount = require(serviceAccountPath);
+      
+      // Validar conteúdo
+      if (!serviceAccount.private_key || serviceAccount.private_key.includes('YOUR_PRIVATE_KEY_HERE')) {
+        throw new Error('serviceAccountKey.json contém dados inválidos ou de exemplo.');
+      }
+      
+      if (!serviceAccount.client_email || !serviceAccount.project_id) {
+        throw new Error('serviceAccountKey.json está incompleto (faltam client_email ou project_id).');
       }
       
       const app = initializeApp({
@@ -28,10 +44,13 @@ export class FirebaseClient {
       });
       
       console.log('[OK] Firebase inicializado com Service Account (modo seguro)');
+      console.log(`[INFO] Projeto: ${serviceAccount.project_id}`);
+      console.log(`[INFO] Service Account: ${serviceAccount.client_email}`);
       return app;
       
-    } catch (error) {
+    } catch (error: any) {
       this.usandoModoDev = true;
+      console.error('[ERRO] Falha ao carregar credenciais:', error.message);
       this.printDevModeWarning();
       
       return initializeApp({

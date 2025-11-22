@@ -16,10 +16,21 @@ Sistema completo de monitoramento de sensores para cultivo de algodão, com simu
 
 Este projeto simula um sistema IoT para monitoramento de condições ambientais em plantações de algodão, incluindo:
 
-- **Temperatura**: Monitoramento entre 22°C e 38°C
-- **Luminosidade**: Monitoramento entre 200 e 900 lux
+### Sensores Atmosféricos
+- **Temperatura**: 15-42°C (ideal: 20-30°C)
+- **Luminosidade**: 100-1000 lux (ideal: 400-800 lux)
+- **Umidade do Ar**: 30-95% (ideal: 50-70%)
+- **Pressão Atmosférica**: 950-1050 hPa (ideal: 1000-1025 hPa)
+
+### Sensores do Solo
+- **Umidade do Solo**: 20-100% (ideal: 60-80%)
+- **pH do Solo**: 4.0-9.0 (ideal: 5.8-8.0)
+
+### Recursos
 - **Sistema de Alertas**: Verde (OK), Amarelo (Alerta), Vermelho (Crítico)
 - **Atualização em Tempo Real**: Dados sincronizados via Firebase Realtime Database
+- **Arquitetura Modular**: Preparado para hardware real com johnny-five
+- **Cotton Design System**: Interface moderna com paleta de cores profissional
 
 ## 🏗️ Arquitetura
 
