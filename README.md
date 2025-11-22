@@ -68,62 +68,62 @@ Sistema completo de monitoramento IoT para cultivo de algodão, composto por sim
 ### Nível 1: Contexto do Sistema
 
 ```
-                        ┌─────────────┐
-                        │   Usuário   │
-                        │ Agricultor  │
-                        └──────┬──────┘
-                               │
-                               ▼
-        ┌──────────────────────────────────────────┐
-        │    Sistema IoT Monitoramento Agrícola    │
-        │                                          │
-        │  - Coleta de dados de sensores          │
-        │  - Análise de condições ambientais      │
-        │  - Alertas em tempo real                │
-        └──────────────┬───────────────────────────┘
-                       │
-                       ▼
-              ┌─────────────────┐
-              │ Firebase Cloud  │
-              │  Realtime DB    │
-              └─────────────────┘
+                    ┌─────────────┐
+                    │   Usuário   │
+                    │ Agricultor  │
+                    └──────┬──────┘
+                           │
+                           ▼
+    ┌──────────────────────────────────────────┐
+    │  Sistema IoT Monitoramento Agrícola      │
+    │                                          │
+    │  - Coleta de dados de sensores          │
+    │  - Análise de condições ambientais      │
+    │  - Alertas em tempo real                │
+    └──────────────┬───────────────────────────┘
+                   │
+                   ▼
+          ┌─────────────────┐
+          │ Firebase Cloud  │
+          │  Realtime DB    │
+          └─────────────────┘
 ```
 
 ### Nível 2: Containers
 
 ```
-┌────────────────────────────────────────────────────────────────────┐
-│                      Sistema IoT Agricultura                       │
-├────────────────────────────────────────────────────────────────────┤
-│                                                                    │
-│  ┌──────────────────────┐            ┌──────────────────────┐     │
-│  │ Arduino Simulator    │            │   Flutter App        │     │
-│  │   (Node.js/TS)       │            │   (Dart/Flutter)     │     │
-│  │                      │            │                      │     │
-│  │ - Johnny-Five        │            │ - Dashboard UI       │     │
-│  │ - Mock-Firmata       │            │ - State Management   │     │
-│  │ - SensorManager      │◄──────────►│ - Real-time Listener │     │
-│  │ - CLI Interface      │    sync    │ - Command Sender     │     │
-│  │ - Firebase Client    │            │                      │     │
-│  └──────────┬───────────┘            └──────────┬───────────┘     │
-│             │                                   │                 │
-│             │            ┌──────────────────────┘                 │
-│             │            │                                        │
-│             ▼            ▼                                        │
-│  ┌───────────────────────────────┐                               │
-│  │  Firebase Realtime Database   │                               │
-│  │                               │                               │
-│  │  /agro/algodao/sensores       │                               │
-│  │    - temperatura              │                               │
-│  │    - luminosidade             │                               │
-│  │    - umidade                  │                               │
-│  │    - umidade_solo             │                               │
-│  │    - ph                       │                               │
-│  │    - pressao                  │                               │
-│  │    - painel (status)          │                               │
-│  └───────────────────────────────┘                               │
-│                                                                    │
-└────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                  Sistema IoT Agricultura                         │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌────────────────────┐          ┌────────────────────┐         │
+│  │ Arduino Simulator  │          │   Flutter App      │         │
+│  │   (Node.js/TS)     │          │  (Dart/Flutter)    │         │
+│  │                    │          │                    │         │
+│  │ - Johnny-Five      │          │ - Dashboard UI     │         │
+│  │ - Mock-Firmata     │          │ - State Mgmt       │         │
+│  │ - SensorManager    │◄────────►│ - Real-time        │         │
+│  │ - CLI Interface    │   sync   │ - Commands         │         │
+│  │ - Firebase Client  │          │                    │         │
+│  └─────────┬──────────┘          └─────────┬──────────┘         │
+│            │                               │                    │
+│            │         ┌─────────────────────┘                    │
+│            │         │                                          │
+│            ▼         ▼                                          │
+│  ┌─────────────────────────────┐                               │
+│  │ Firebase Realtime Database  │                               │
+│  │                             │                               │
+│  │ /agro/algodao/sensores      │                               │
+│  │   - temperatura             │                               │
+│  │   - luminosidade            │                               │
+│  │   - umidade                 │                               │
+│  │   - umidade_solo            │                               │
+│  │   - ph                      │                               │
+│  │   - pressao                 │                               │
+│  │   - painel (status)         │                               │
+│  └─────────────────────────────┘                               │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ### Nível 3: Componentes
@@ -170,51 +170,51 @@ Sistema completo de monitoramento IoT para cultivo de algodão, composto por sim
 #### Flutter App
 
 ```
-┌──────────────────────────────────────────────┐
-│         Flutter App (Clean Arch)             │
-├──────────────────────────────────────────────┤
-│                                              │
-│  ┌────────────────────┐                     │
-│  │   Presentation     │                     │
-│  │                    │                     │
-│  │  ┌──────────────┐  │                     │
-│  │  │  Dashboard   │  │                     │
-│  │  │    Page      │  │                     │
-│  │  └──────┬───────┘  │                     │
-│  │         │           │                     │
-│  │         ▼           │                     │
-│  │  ┌──────────────┐  │                     │
-│  │  │   Sensor     │  │                     │
-│  │  │    Cubit     │  │                     │
-│  │  └──────┬───────┘  │                     │
-│  └─────────┼──────────┘                     │
-│            │                                 │
-│  ┌─────────▼──────────┐                     │
-│  │       Data         │                     │
-│  │                    │                     │
-│  │  ┌──────────────┐  │                     │
-│  │  │  Firebase    │  │                     │
-│  │  │   Service    │  │                     │
-│  │  └──────────────┘  │                     │
-│  │                    │                     │
-│  │  Either<L,R>       │                     │
-│  │  Error Handling    │                     │
-│  └────────────────────┘                     │
-│                                              │
-│  ┌────────────────────┐                     │
-│  │      Domain        │                     │
-│  │                    │                     │
-│  │  ┌──────────────┐  │                     │
-│  │  │   Sensor     │  │                     │
-│  │  │    Model     │  │                     │
-│  │  └──────────────┘  │                     │
-│  │                    │                     │
-│  │  ┌──────────────┐  │                     │
-│  │  │  Failures    │  │                     │
-│  │  └──────────────┘  │                     │
-│  └────────────────────┘                     │
-│                                              │
-└──────────────────────────────────────────────┘
+┌────────────────────────────────────────────┐
+│       Flutter App (Clean Arch)             │
+├────────────────────────────────────────────┤
+│                                            │
+│  ┌──────────────────┐                     │
+│  │  Presentation    │                     │
+│  │                  │                     │
+│  │  ┌────────────┐  │                     │
+│  │  │ Dashboard  │  │                     │
+│  │  │   Page     │  │                     │
+│  │  └─────┬──────┘  │                     │
+│  │        │          │                     │
+│  │        ▼          │                     │
+│  │  ┌────────────┐  │                     │
+│  │  │  Sensor    │  │                     │
+│  │  │   Cubit    │  │                     │
+│  │  └─────┬──────┘  │                     │
+│  └────────┼─────────┘                     │
+│           │                                │
+│  ┌────────▼────────┐                      │
+│  │      Data       │                      │
+│  │                 │                      │
+│  │  ┌───────────┐  │                      │
+│  │  │ Firebase  │  │                      │
+│  │  │  Service  │  │                      │
+│  │  └───────────┘  │                      │
+│  │                 │                      │
+│  │  Either<L,R>    │                      │
+│  │  Error Handling │                      │
+│  └─────────────────┘                      │
+│                                            │
+│  ┌─────────────────┐                      │
+│  │     Domain      │                      │
+│  │                 │                      │
+│  │  ┌───────────┐  │                      │
+│  │  │  Sensor   │  │                      │
+│  │  │   Model   │  │                      │
+│  │  └───────────┘  │                      │
+│  │                 │                      │
+│  │  ┌───────────┐  │                      │
+│  │  │ Failures  │  │                      │
+│  │  └───────────┘  │                      │
+│  └─────────────────┘                      │
+│                                            │
+└────────────────────────────────────────────┘
 ```
 
 ### Nível 4: Código
