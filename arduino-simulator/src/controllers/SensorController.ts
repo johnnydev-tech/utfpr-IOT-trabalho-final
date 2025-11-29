@@ -97,11 +97,13 @@ export class SensorController {
       await this.dataPublisher.sendSensorData(payload);
       
       const mode = this.hasManualSensors() ? '[MANUAL]' : '[AUTO]';
-      console.log(`${mode} Enviado - Painel: ${payload.painel} | ` +
-        `Temp: ${readings.temperatura.valor}°C (${readings.temperatura.status}) | ` +
+      console.log(`${mode} Enviado - Painel: ${payload.painel}`);
+      console.log(`  Temp: ${readings.temperatura.valor}°C (${readings.temperatura.status}) | ` +
         `Luz: ${readings.luminosidade.valor}lux (${readings.luminosidade.status}) | ` +
-        `Umid: ${readings.umidade.valor}% (${readings.umidade.status})`
-      );
+        `Umid: ${readings.umidade.valor}% (${readings.umidade.status})`);
+      console.log(`  Solo: ${readings.umidade_solo.valor}% (${readings.umidade_solo.status}) | ` +
+        `pH: ${readings.ph.valor} (${readings.ph.status}) | ` +
+        `Pressão: ${readings.pressao.valor}hPa (${readings.pressao.status})`);
       
     } catch (error: any) {
       console.error('[ERRO] Falha ao enviar dados:', error.message);
