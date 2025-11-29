@@ -74,4 +74,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'utfpr-iot-trabalho-final.firebasestorage.app',
     iosBundleId: 'com.example.iotMonitorApp',
   );
+
 }

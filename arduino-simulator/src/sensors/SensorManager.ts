@@ -1,4 +1,3 @@
-// src/sensors/SensorManager.ts
 import { SensorConfig, SensorValue, Status } from '../types';
 
 export class Sensor {
@@ -37,7 +36,6 @@ export class Sensor {
     const range = this.config.max - this.config.min;
     const value = this.config.min + Math.random() * range;
     
-    // pH tem precisão de 1 casa decimal, outros 2
     const precision = this.config.unidade === '' ? 1 : 
                      (this.config.unidade === 'hPa' ? 0 : 1);
     
@@ -59,24 +57,20 @@ export class Sensor {
   private getStatus(value: number): Status {
     const { okMin, okMax, alertaMin, alertaMax } = this.config;
     
-    // Se não tem limites definidos, sempre OK
     if (okMin === undefined || okMax === undefined) {
       return 'OK';
     }
     
-    // Dentro da faixa OK
     if (value >= okMin && value <= okMax) {
       return 'OK';
     }
     
-    // Fora dos limites críticos
     if (alertaMin !== undefined && alertaMax !== undefined) {
       if (value < alertaMin || value > alertaMax) {
         return 'CRITICO';
       }
     }
     
-    // Entre OK e CRÍTICO = ALERTA
     return 'ALERTA';
   }
 }

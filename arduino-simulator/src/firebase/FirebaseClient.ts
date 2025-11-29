@@ -1,12 +1,12 @@
-// src/firebase/FirebaseClient.ts
 import { initializeApp, cert, App } from 'firebase-admin/app';
 import { getDatabase, Database } from 'firebase-admin/database';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Payload, Command, Painel } from '../types';
 import { FIREBASE_CONFIG } from '../config';
+import { IDataPublisher } from '../interfaces/IDataPublisher';
 
-export class FirebaseClient {
+export class FirebaseClient implements IDataPublisher {
   private app: App;
   private db: Database;
   private usandoModoDev: boolean = false;
@@ -18,18 +18,15 @@ export class FirebaseClient {
   
   private initializeFirebase(): App {
     try {
-      // Buscar serviceAccountKey.json na raiz do projeto
       const projectRoot = path.resolve(__dirname, '..', '..');
       const serviceAccountPath = path.join(projectRoot, 'serviceAccountKey.json');
       
-      // Verificar se o arquivo existe
       if (!fs.existsSync(serviceAccountPath)) {
         throw new Error(`Arquivo não encontrado: ${serviceAccountPath}`);
       }
       
       const serviceAccount = require(serviceAccountPath);
       
-      // Validar conteúdo
       if (!serviceAccount.private_key || serviceAccount.private_key.includes('YOUR_PRIVATE_KEY_HERE')) {
         throw new Error('serviceAccountKey.json contém dados inválidos ou de exemplo.');
       }

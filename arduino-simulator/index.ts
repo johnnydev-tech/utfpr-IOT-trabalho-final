@@ -1,22 +1,24 @@
-// index.ts - Novo ponto de entrada
-import { Simulator } from './src/Simulator';
+import { SensorController } from './src/controllers/SensorController';
+import { VirtualBoard } from './src/sensors/VirtualBoard';
+import { FirebaseClient } from './src/firebase/FirebaseClient';
 
-const simulator = new Simulator();
+const sensorBoard = new VirtualBoard();
+const dataPublisher = new FirebaseClient();
+const controller = new SensorController(sensorBoard, dataPublisher);
 
-simulator.start().catch((error) => {
+controller.start().catch((error) => {
   console.error('[ERRO FATAL]', error);
   process.exit(1);
 });
 
-// Graceful shutdown
 process.on('SIGINT', () => {
   console.log('\n[INFO] Recebido SIGINT, encerrando...');
-  simulator.stop();
+  controller.stop();
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
   console.log('\n[INFO] Recebido SIGTERM, encerrando...');
-  simulator.stop();
+  controller.stop();
   process.exit(0);
 });

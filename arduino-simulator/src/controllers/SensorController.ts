@@ -1,30 +1,28 @@
-// src/Simulator.ts
-import { VirtualBoard } from './sensors/VirtualBoard';
-import { FirebaseClient } from './firebase/FirebaseClient';
-import { CLI } from './cli/CLI';
-import { Payload, Painel, Status, SensorValue } from './types';
-import { CONFIG } from './config';
+import { ISensorBoard } from '../interfaces/ISensorBoard';
+import { IDataPublisher } from '../interfaces/IDataPublisher';
+import { CLI } from '../cli/CLI';
+import { Payload, Painel, Status, SensorValue } from '../types';
+import { CONFIG } from '../config';
 
-export class Simulator {
-  private board: VirtualBoard;
-  private firebase: FirebaseClient;
-  private cli: CLI;
+export class SensorController {
   private intervalId?: NodeJS.Timeout;
+  private cli: CLI;
   
-  constructor() {
-    this.board = new VirtualBoard();
-    this.firebase = new FirebaseClient();
-    this.cli = new CLI(this.board);
+  constructor(
+    private sensorBoard: ISensorBoard,
+    private dataPublisher: IDataPublisher
+  ) {
+    this.cli = new CLI(this);
   }
   
   async start(): Promise<void> {
-    console.log('[INFO] Iniciando Arduino Simulado...');
-    console.log('[INFO] Conectando ao Firebase...');
+    console.log('[INFO] Iniciando Controlador de Sensores...');
+    console.log('[INFO] Conectando ao serviço de publicação...');
     
-    // Inicializar board virtual
-    await this.board.initialize();
+    // Inicializar placa de sensores
+    await this.sensorBoard.initialize();
     
-    // Aguardar e testar conexão Firebase
+    // Aguardar e testar conexão com publicador
     await this.waitAndTestConnection();
     
     // Iniciar CLI
@@ -33,18 +31,52 @@ export class Simulator {
     // Iniciar envio periódico
     this.startPeriodicSending();
     
-    // Escutar comandos do Firebase
+    // Escutar comandos
     this.listenToCommands();
+  }
+  
+  stop(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+  }
+  
+  setSensorValue(sensorName: string, value: number): void {
+    this.sensorBoard.setSensorValue(sensorName, value);
+  }
+  
+  setAutoMode(): void {
+    this.sensorBoard.setAutoMode();
+  }
+  
+  getSensorInfo(sensorName: string): { isManual: boolean; value: number } | null {
+    return this.sensorBoard.getSensorInfo(sensorName);
+  }
+  
+  getSensorNames(): string[] {
+    return this.sensorBoard.getSensorNames();
+  }
+  
+  readAllSensors(): Record<string, SensorValue> {
+    return this.sensorBoard.readAllSensors();
+  }
+  
+  hasManualSensors(): boolean {
+    return this.sensorBoard.hasManualSensors();
+  }
+  
+  promptCLI(): void {
+    this.cli.prompt();
   }
   
   private async waitAndTestConnection(): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const connected = await this.firebase.testConnection();
+    const connected = await this.dataPublisher.testConnection();
     
     if (!connected) {
-      console.log('\n[ERRO] Não foi possível conectar ao Firebase.');
-      console.log('[INFO] Corrija as permissões e tente novamente.\n');
+      console.log('\n[ERRO] Não foi possível conectar ao serviço de publicação.');
+      console.log('[INFO] Corrija as configurações e tente novamente.\n');
       process.exit(1);
     }
   }
@@ -59,10 +91,10 @@ export class Simulator {
   
   private async sendData(): Promise<void> {
     try {
-      const readings = this.board.readAllSensors();
+      const readings = this.sensorBoard.readAllSensors();
       const payload = this.buildPayload(readings);
       
-      await this.firebase.sendSensorData(payload);
+      await this.dataPublisher.sendSensorData(payload);
       
       const mode = this.hasManualSensors() ? '[MANUAL]' : '[AUTO]';
       console.log(`${mode} Enviado - Painel: ${payload.painel} | ` +
@@ -98,28 +130,16 @@ export class Simulator {
     return 'VERDE';
   }
   
-  private hasManualSensors(): boolean {
-    const manager = this.board.getSensorManager();
-    return Array.from(manager.getAllSensors().values())
-      .some(sensor => sensor.isManual());
-  }
-  
   private listenToCommands(): void {
-    this.firebase.onCommand(async (cmd) => {
+    this.dataPublisher.onCommand(async (cmd) => {
       if (cmd.forcar_estado && cmd.forcar_estado !== 'AUTO') {
-        console.log(`\n[COMANDO] Recebido do app: forçar painel ${cmd.forcar_estado}`);
-        await this.firebase.forcePanelState(cmd.forcar_estado);
+        console.log(`\n[COMANDO] Recebido: forçar painel ${cmd.forcar_estado}`);
+        await this.dataPublisher.forcePanelState(cmd.forcar_estado);
       } else {
-        console.log('\n[COMANDO] Recebido do app: modo AUTO');
-        await this.firebase.clearForcedPanel();
+        console.log('\n[COMANDO] Recebido: modo AUTO');
+        await this.dataPublisher.clearForcedPanel();
       }
       this.cli.prompt();
     });
-  }
-  
-  stop(): void {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
   }
 }

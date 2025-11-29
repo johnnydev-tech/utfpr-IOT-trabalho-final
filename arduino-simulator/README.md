@@ -1,49 +1,71 @@
-# Arduino Simulator - Arquitetura Modular
+# Arduino Simulator - Arquitetura Desacoplada
 
-## 📐 Nova Arquitetura
+## 📐 Arquitetura
 
-O simulador foi completamente refatorado com uma arquitetura modular e escalável:
+O simulador foi desenvolvido com **arquitetura baseada em interfaces** e **injeção de dependências**, permitindo **fácil substituição** da simulação por hardware real.
 
 ```
 arduino-simulator/
-├── index.ts                    # Ponto de entrada
+├── index.ts                    # Ponto de entrada (DI)
+├── ARCHITECTURE.md             # Documentação detalhada da arquitetura
 ├── src/
 │   ├── types.ts               # Definições de tipos TypeScript
 │   ├── config.ts              # Configurações centralizadas
-│   ├── Simulator.ts           # Classe principal do simulador
-│   ├── sensors/
-│   │   ├── SensorManager.ts   # Gerenciador de sensores
-│   │   └── VirtualBoard.ts    # Board virtual (johnny-five)
-│   ├── firebase/
-│   │   └── FirebaseClient.ts  # Cliente Firebase isolado
+│   ├── interfaces/            # 🔌 Contratos abstratos
+│   │   ├── ISensorBoard.ts        # Interface para leitura de sensores
+│   │   └── IDataPublisher.ts      # Interface para publicação de dados
+│   ├── controllers/           # 🎮 Lógica de orquestração
+│   │   └── SensorController.ts    # Controller principal
+│   ├── sensors/               # 🌡️ Implementações de hardware
+│   │   ├── VirtualBoard.ts        # Simulação (implementa ISensorBoard)
+│   │   ├── SensorManager.ts       # Gerenciador de sensores virtuais
+│   │   └── RealBoard.example.ts   # Exemplo para hardware real
+│   ├── firebase/              # ☁️ Implementações de publicação
+│   │   └── FirebaseClient.ts      # Firebase (implementa IDataPublisher)
+│   ├── publishers/            # 📡 Outras implementações
+│   │   └── MqttPublisher.example.ts  # Exemplo MQTT
 │   └── cli/
 │       └── CLI.ts             # Interface de linha de comando
-└── arduino-simulado.ts        # [DEPRECATED] Versão antiga
 ```
+
+> 📖 **Leia [ARCHITECTURE.md](./ARCHITECTURE.md)** para documentação completa da arquitetura
 
 ## 🎯 Princípios de Design
 
-### 1. **Separação de Responsabilidades**
-- **SensorManager**: Gerencia leitura e estado dos sensores
-- **VirtualBoard**: Simula placa Arduino (preparado para johnny-five real)
-- **FirebaseClient**: Comunicação isolada com Firebase
-- **CLI**: Interface do usuário separada da lógica de negócio
-- **Simulator**: Orquestra todos os componentes
+### 1. **Desacoplamento via Interfaces**
+```typescript
+// Interface define o contrato
+interface ISensorBoard {
+  readAllSensors(): Record<string, SensorValue>;
+}
 
-### 2. **Orientação a Objetos**
-- Classes com responsabilidades únicas
-- Encapsulamento de estado e comportamento
-- Fácil extensão e manutenção
+// Implementações podem ser trocadas facilmente
+class VirtualBoard implements ISensorBoard { ... }
+class RealBoard implements ISensorBoard { ... }
+```
 
-### 3. **Configuração Centralizada**
-- Todas as configurações em `config.ts`
-- Fácil ajuste de limites e intervalos
-- Separação entre config e lógica
+### 2. **Injeção de Dependências**
+```typescript
+// index.ts - Configuração em um único lugar
+const sensorBoard = new VirtualBoard();      // Ou: new RealBoard()
+const dataPublisher = new FirebaseClient();  // Ou: new MqttPublisher()
 
-### 4. **Tipos Fortes**
-- TypeScript com tipos explícitos
-- Interfaces bem definidas
-- Redução de erros em runtime
+const controller = new SensorController(sensorBoard, dataPublisher);
+```
+
+### 3. **Separação de Responsabilidades**
+- **ISensorBoard**: Interface para leitura de sensores (Virtual ou Real)
+- **IDataPublisher**: Interface para publicação de dados (Firebase, MQTT, HTTP, etc.)
+- **SensorController**: Orquestra sensores e publicação
+- **CLI**: Interface do usuário
+- **Config**: Configurações centralizadas
+
+### 4. **SOLID Principles**
+- ✅ Single Responsibility
+- ✅ Open/Closed (extensível via interfaces)
+- ✅ Liskov Substitution (implementações intercambiáveis)
+- ✅ Interface Segregation
+- ✅ Dependency Inversion (depende de abstrações)
 
 ## 🌡️ Novos Sensores
 
@@ -160,24 +182,22 @@ O arquivo `package.json` já está configurado com:
 [OK] Modo automático ativado para todos os sensores
 ```
 
-## 🔌 Johnny-Five - Preparado para Hardware Real
+## 🔄 Substituindo por Hardware Real
 
-A arquitetura está preparada para usar johnny-five com Arduino físico:
+Graças à arquitetura desacoplada, **é muito simples** trocar a simulação por Arduino físico:
 
-### Virtual Board (Atual)
-```typescript
-// src/sensors/VirtualBoard.ts
-export class VirtualBoard {
-  // Simula sensores virtuais
-  // Ideal para desenvolvimento e testes
-}
+### 1️⃣ Crie RealBoard.ts
+```bash
+cp src/sensors/RealBoard.example.ts src/sensors/RealBoard.ts
 ```
 
-### Real Board (Futuro)
+### 2️⃣ Implemente a leitura real dos sensores
 ```typescript
+// src/sensors/RealBoard.ts
+import { ISensorBoard } from '../interfaces/ISensorBoard';
 import * as five from 'johnny-five';
 
-export class RealBoard {
+export class RealBoard implements ISensorBoard {
   private board: five.Board;
   private temperature: five.Thermometer;
   private moisture: five.Sensor;
@@ -185,33 +205,61 @@ export class RealBoard {
   async initialize(): Promise<void> {
     this.board = new five.Board();
     
-    this.board.on('ready', () => {
-      // DHT22 - Temperatura e Umidade
-      this.temperature = new five.Thermometer({
-        controller: 'DHT22',
-        pin: 2
-      });
-      
-      // Sensor de Umidade do Solo
-      this.moisture = new five.Sensor({
-        pin: 'A0',
-        freq: 1000
-      });
-      
-      // pH Sensor
-      this.ph = new five.Sensor({
-        pin: 'A1',
-        freq: 1000
+    return new Promise((resolve) => {
+      this.board.on('ready', () => {
+        // DHT22 - Temperatura e Umidade
+        this.temperature = new five.Thermometer({
+          controller: 'DHT22',
+          pin: 2
+        });
+        
+        // Sensor de Umidade do Solo
+        this.moisture = new five.Sensor({
+          pin: 'A0',
+          freq: 1000
+        });
+        
+        resolve();
       });
     });
+  }
+  
+  readAllSensors(): Record<string, SensorValue> {
+    return {
+      temperatura: {
+        valor: this.temperature.celsius,
+        status: this.getStatus(this.temperature.celsius, 20, 30),
+        timestamp: Date.now(),
+        unidade: '°C'
+      },
+      // ... outros sensores
+    };
   }
 }
 ```
 
-Para usar com hardware real, basta:
-1. Conectar Arduino via USB
-2. Trocar `VirtualBoard` por `RealBoard` em `Simulator.ts`
-3. Configurar os pinos corretos em `RealBoard.ts`
+### 3️⃣ Atualize apenas o index.ts
+```typescript
+// index.ts - ÚNICA mudança necessária!
+
+// Antes:
+import { VirtualBoard } from './src/sensors/VirtualBoard';
+const sensorBoard = new VirtualBoard();
+
+// Depois:
+import { RealBoard } from './src/sensors/RealBoard';
+const sensorBoard = new RealBoard();
+
+// Resto do código permanece IGUAL! 🎉
+const dataPublisher = new FirebaseClient();
+const controller = new SensorController(sensorBoard, dataPublisher);
+controller.start();
+```
+
+### 4️⃣ Pronto! ✅
+- Nenhum outro arquivo precisa ser alterado
+- Controller, CLI, Firebase continuam funcionando
+- Mesma interface, implementação diferente
 
 ## 📊 Formato de Dados Firebase
 
@@ -343,26 +391,86 @@ Pronto! O sensor já funciona em toda a aplicação.
 ✅ **Preparado para Produção**: Fácil migração para hardware real  
 ✅ **TypeScript**: Segurança de tipos em tempo de desenvolvimento  
 
-## 🔄 Migração da Versão Antiga
+## 🔌 Substituindo Firebase por MQTT
 
-A versão antiga (`arduino-simulado.ts`) ainda existe mas está **deprecated**.
+Também é simples trocar o Firebase por MQTT (ou qualquer outro protocolo):
 
-Para migrar completamente:
-1. Use `npm run dev` ao invés de executar `arduino-simulado.ts`
-2. Configure `.vscode/launch.json` para usar `index.ts`
-3. Após validar, delete `arduino-simulado.ts`
+### 1️⃣ Crie MqttPublisher.ts
+```bash
+cp src/publishers/MqttPublisher.example.ts src/publishers/MqttPublisher.ts
+npm install mqtt
+```
+
+### 2️⃣ Atualize apenas o index.ts
+```typescript
+// index.ts
+
+// Antes:
+import { FirebaseClient } from './src/firebase/FirebaseClient';
+const dataPublisher = new FirebaseClient();
+
+// Depois:
+import { MqttPublisher } from './src/publishers/MqttPublisher';
+const dataPublisher = new MqttPublisher('mqtt://broker.example.com');
+
+// Resto continua igual!
+const sensorBoard = new VirtualBoard();
+const controller = new SensorController(sensorBoard, dataPublisher);
+```
+
+## 🎨 Combinações Possíveis
+
+Graças à injeção de dependências, você pode combinar qualquer implementação:
+
+```typescript
+// Simulação + Firebase (desenvolvimento)
+const board = new VirtualBoard();
+const publisher = new FirebaseClient();
+
+// Simulação + MQTT (testes de integração)
+const board = new VirtualBoard();
+const publisher = new MqttPublisher('mqtt://test-broker');
+
+// Hardware Real + Firebase (produção)
+const board = new RealBoard();
+const publisher = new FirebaseClient();
+
+// Hardware Real + MQTT (produção alternativa)
+const board = new RealBoard();
+const publisher = new MqttPublisher('mqtt://prod-broker');
+
+// Sempre o mesmo controller!
+const controller = new SensorController(board, publisher);
+```
 
 ## 📝 Próximos Passos
 
-- [ ] Adicionar testes unitários com Jest
-- [ ] Implementar logging estruturado
-- [ ] Criar modo de replay de dados históricos
-- [ ] Adicionar suporte a múltiplas culturas (soja, milho, etc.)
-- [ ] Integrar com Arduino físico usando johnny-five
-- [ ] Adicionar dashboard web para visualização
+### Para Desenvolvimento
+- [x] Arquitetura desacoplada com interfaces
+- [x] Simulação virtual funcionando
+- [x] Firebase integrado
+- [x] CLI interativo
+- [ ] Testes unitários com Jest
+- [ ] Testes de integração
+
+### Para Produção
+- [ ] Implementar RealBoard com Arduino físico
+- [ ] Testar com sensores reais (DHT22, soil moisture, pH)
+- [ ] Configurar calibração de sensores
+- [ ] Implementar retry e tratamento de erros robusto
+- [ ] Logging estruturado
+- [ ] Monitoramento de saúde do sistema
+
+### Extensões Futuras
+- [ ] Suporte a múltiplas culturas (soja, milho, etc.)
+- [ ] Dashboard web para visualização
+- [ ] Modo de replay de dados históricos
+- [ ] Alertas via SMS/Email
+- [ ] Machine Learning para previsões
 
 ---
 
 **Versão**: 2.0.0  
 **Data**: Novembro 2024  
-**Arquitetura**: Modular com johnny-five
+**Arquitetura**: Desacoplada com Injeção de Dependências  
+**Princípios**: SOLID, Interface-based Design, Separation of Concerns

@@ -1,12 +1,10 @@
-// src/sensors/VirtualBoard.ts
 import { Board } from 'johnny-five';
 import { SensorManager } from './SensorManager';
 import { CONFIG } from '../config';
+import { ISensorBoard } from '../interfaces/ISensorBoard';
+import { SensorValue } from '../types';
 
-/**
- * VirtualBoard usa johnny-five com mock-firmata para simular Arduino
- */
-export class VirtualBoard {
+export class VirtualBoard implements ISensorBoard {
   private board: Board;
   private sensorManager: SensorManager;
   private ready: boolean = false;
@@ -15,7 +13,6 @@ export class VirtualBoard {
     this.sensorManager = new SensorManager();
     this.initializeSensors();
     
-    // Inicializa Johnny-Five com mock-firmata (simulação)
     const { Firmata } = require('mock-firmata');
     
     this.board = new Board({
@@ -26,7 +23,6 @@ export class VirtualBoard {
   }
   
   private initializeSensors(): void {
-    // Adicionar todos os sensores do config
     Object.entries(CONFIG.sensors).forEach(([name, config]) => {
       this.sensorManager.addSensor(name, config);
     });
@@ -71,11 +67,7 @@ export class VirtualBoard {
     return this.ready;
   }
   
-  getSensorManager(): SensorManager {
-    return this.sensorManager;
-  }
-  
-  readAllSensors(): Record<string, any> {
+  readAllSensors(): Record<string, SensorValue> {
     if (!this.ready) {
       throw new Error('Board não está pronta');
     }
@@ -83,7 +75,43 @@ export class VirtualBoard {
     return this.sensorManager.readAll();
   }
   
+  setSensorValue(sensorName: string, value: number): void {
+    const sensor = this.sensorManager.getSensor(sensorName);
+    if (!sensor) {
+      throw new Error(`Sensor "${sensorName}" não encontrado`);
+    }
+    sensor.setManualValue(value);
+  }
+  
+  setAutoMode(): void {
+    this.sensorManager.setAllAutoMode();
+  }
+  
+  hasManualSensors(): boolean {
+    return Array.from(this.sensorManager.getAllSensors().values())
+      .some(sensor => sensor.isManual());
+  }
+  
+  getSensorNames(): string[] {
+    return Array.from(this.sensorManager.getAllSensors().keys());
+  }
+  
+  getSensorInfo(sensorName: string): { isManual: boolean; value: number } | null {
+    const sensor = this.sensorManager.getSensor(sensorName);
+    if (!sensor) {
+      return null;
+    }
+    return {
+      isManual: sensor.isManual(),
+      value: sensor.getCurrentValue()
+    };
+  }
+  
   getBoard(): Board {
     return this.board;
+  }
+  
+  getSensorManager(): SensorManager {
+    return this.sensorManager;
   }
 }

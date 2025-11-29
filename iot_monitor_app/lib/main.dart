@@ -20,7 +20,6 @@ void main() async {
     );
     AppLogger.info('✅ Firebase inicializado com sucesso');
 
-    // Inicializar notificações
     await NotificationService().initialize();
     AppLogger.info('Notificações inicializadas');
   } catch (e, stackTrace) {

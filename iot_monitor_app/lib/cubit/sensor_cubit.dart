@@ -20,12 +20,10 @@ class SensorCubit extends Cubit<SensorState> {
     _subscription = service.listenToSensors().listen(
       (either) {
         either.fold(
-          // Left: Error
           (failure) {
             AppLogger.error('❌ Erro recebido no Cubit: ${failure.message}');
             emit(SensorError(failure));
           },
-          // Right: Success
           (data) {
             AppLogger.debug('✅ Dados carregados no Cubit');
             emit(SensorLoaded(data));
@@ -41,7 +39,6 @@ class SensorCubit extends Cubit<SensorState> {
   Future<void> forcarEstado(String estado) async {
     final currentState = state;
 
-    // Get current data to preserve UI
     SensoresPayload? currentData;
     if (currentState is SensorLoaded) {
       currentData = currentState.data;
@@ -60,13 +57,11 @@ class SensorCubit extends Cubit<SensorState> {
     final result = await service.sendCommand(estado);
 
     result.fold(
-      // Left: Error
       (failure) {
         AppLogger.error('❌ Falha ao enviar comando: ${failure.message}');
         if (currentData != null) {
           emit(SensorCommandFailed(currentData, failure));
-          // Return to loaded state after 3 seconds
-          final data = currentData; // Capture value
+          final data = currentData;
           Future.delayed(const Duration(seconds: 3), () {
             if (state is SensorCommandFailed) {
               emit(SensorLoaded(data));
@@ -76,7 +71,6 @@ class SensorCubit extends Cubit<SensorState> {
           emit(SensorError(failure));
         }
       },
-      // Right: Success
       (_) {
         AppLogger.info('✅ Comando enviado com sucesso');
         if (currentData != null) {
@@ -86,8 +80,7 @@ class SensorCubit extends Cubit<SensorState> {
               'Comando "$estado" enviado com sucesso',
             ),
           );
-          // Return to loaded state after 2 seconds
-          final data = currentData; // Capture value
+          final data = currentData;
           Future.delayed(const Duration(seconds: 2), () {
             if (state is SensorCommandSent) {
               emit(SensorLoaded(data));

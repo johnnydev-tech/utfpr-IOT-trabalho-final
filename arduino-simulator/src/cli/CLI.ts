@@ -1,13 +1,20 @@
-// src/cli/CLI.ts
 import * as readline from 'readline';
-import { VirtualBoard } from '../sensors/VirtualBoard';
+
+export interface ISensorController {
+  setSensorValue(sensorName: string, value: number): void;
+  setAutoMode(): void;
+  getSensorInfo(sensorName: string): { isManual: boolean; value: number } | null;
+  getSensorNames(): string[];
+  readAllSensors(): Record<string, any>;
+  hasManualSensors(): boolean;
+}
 
 export class CLI {
   private rl: readline.Interface;
-  private board: VirtualBoard;
+  private controller: ISensorController;
   
-  constructor(board: VirtualBoard) {
-    this.board = board;
+  constructor(controller: ISensorController) {
+    this.controller = controller;
     this.rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -82,14 +89,6 @@ export class CLI {
   }
   
   private setSensorValue(sensorName: string, valueStr: string): void {
-    const manager = this.board.getSensorManager();
-    const sensor = manager.getSensor(sensorName);
-    
-    if (!sensor) {
-      console.log(`[ERRO] Sensor "${sensorName}" não encontrado`);
-      return;
-    }
-    
     if (!valueStr) {
       console.log(`[ERRO] Use: ${sensorName} <valor>`);
       return;
@@ -101,27 +100,34 @@ export class CLI {
       return;
     }
     
-    sensor.setManualValue(value);
-    const reading = sensor.read();
-    console.log(`[OK] ${sensorName} = ${reading.valor}${reading.unidade} (${reading.status}) [MANUAL]`);
+    try {
+      this.controller.setSensorValue(sensorName, value);
+      const info = this.controller.getSensorInfo(sensorName);
+      
+      if (info) {
+        const readings = this.controller.readAllSensors();
+        const reading = readings[sensorName];
+        console.log(`[OK] ${sensorName} = ${reading.valor}${reading.unidade} (${reading.status}) [MANUAL]`);
+      }
+    } catch (error: any) {
+      console.log(`[ERRO] ${error.message}`);
+    }
   }
   
   private setAutoMode(): void {
-    const manager = this.board.getSensorManager();
-    manager.setAllAutoMode();
+    this.controller.setAutoMode();
     console.log('[OK] Modo automático ativado para todos os sensores');
   }
   
   private showStatus(): void {
-    const manager = this.board.getSensorManager();
-    const readings = manager.readAll();
+    const readings = this.controller.readAllSensors();
     
     console.log('\n[STATUS] Leituras atuais:');
     console.log('='.repeat(70));
     
     Object.entries(readings).forEach(([name, reading]) => {
-      const sensor = manager.getSensor(name);
-      const mode = sensor?.isManual() ? '[MANUAL]' : '[AUTO]';
+      const info = this.controller.getSensorInfo(name);
+      const mode = info?.isManual ? '[MANUAL]' : '[AUTO]';
       const status = reading.status.padEnd(8);
       const valor = `${reading.valor}${reading.unidade}`.padEnd(12);
       
@@ -148,10 +154,11 @@ export class CLI {
     console.log('  exit                  - Sai do programa');
     console.log('='.repeat(70));
     
-    const manager = this.board.getSensorManager();
-    const manualSensors = Array.from(manager.getAllSensors().entries())
-      .filter(([_, sensor]) => sensor.isManual())
-      .map(([name]) => name);
+    const sensorNames = this.controller.getSensorNames();
+    const manualSensors = sensorNames.filter(name => {
+      const info = this.controller.getSensorInfo(name);
+      return info?.isManual;
+    });
     
     if (manualSensors.length > 0) {
       console.log(`Sensores em modo MANUAL: ${manualSensors.join(', ')}`);
